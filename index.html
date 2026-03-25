@@ -38,8 +38,11 @@
   .ai-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
   .ai-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #0078d4; color: #0078d4; background: white; cursor: pointer; font-size: 12px; transition: all 0.15s; }
   .ai-btn:hover { background: #0078d4; color: white; }
+  .ai-btn.research { border-color: #107c10; color: #107c10; }
+  .ai-btn.research:hover { background: #107c10; color: white; }
   .ai-response { background: #f0f6ff; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.5; color: #323130; border-left: 3px solid #0078d4; display: none; margin-top: 8px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
   .ai-response.visible { display: block; }
+  .ai-response.research { border-left-color: #107c10; background: #f0fff0; }
   .compose-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
   .compose-modal.open { display: flex; }
   .compose-box { background: white; border-radius: 6px; width: 600px; max-width: 95vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
@@ -107,6 +110,7 @@
               <button class="ai-btn" onclick="aiAction('action_items')">✅ Action Items</button>
               <button class="ai-btn" onclick="aiAction('tone')">🎭 Analyze Tone</button>
               <button class="ai-btn" onclick="aiAction('translate')">🌐 Translate</button>
+              <button class="ai-btn research" onclick="aiAction('research')">🔍 Research</button>
             </div>
             <div class="ai-response" id="aiResponse"></div>
           </div>
@@ -158,16 +162,16 @@ async function selectEmail(i){
   currentEmail=emails[i];currentAttachments=[];
   const e=currentEmail;
   const bc=e.body?.contentType==='html'?`<iframe srcdoc="${escHtml(e.body.content)}" style="width:100%;border:none;min-height:200px;" onload="this.style.height=this.contentDocument.body.scrollHeight+'px'"></iframe>`:`<div style="white-space:pre-wrap;">${escHtml(e.body?.content||e.bodyPreview||'')}</div>`;
-
   let attachHtml='';
   if(e.hasAttachments){
     const ad=await graphGet(`/me/messages/${e.id}/attachments`);
     if(ad&&ad.value){
-      currentAttachments=ad.value.filter(a=>!a.isInline&&!a.name?.startsWith('Outlook-')&&!a.name?.startsWith('image')&&a.size>5000);
-      attachHtml=`<div style="margin-top:12px;"><div style="font-size:12px;color:#605e5c;margin-bottom:6px;">📎 Attachments</div><div class="attachments">${ad.value.map(a=>`<a class="attachment-chip" href="data:${a.contentType};base64,${a.contentBytes}" download="${escHtml(a.name)}">📄 ${escHtml(a.name)} <span style="color:#a19f9d">(${Math.round((a.size||0)/1024)}KB)</span></a>`).join('')}</div></div>`;
+      currentAttachments=ad.value.filter(a=>!a.isInline&&a.contentType!=='image/png'&&a.contentType!=='image/jpeg'&&a.contentType!=='image/gif'&&!a.name?.startsWith('Outlook-'));
+      if(currentAttachments.length){
+        attachHtml=`<div style="margin-top:12px;"><div style="font-size:12px;color:#605e5c;margin-bottom:6px;">📎 Attachments</div><div class="attachments">${currentAttachments.map(a=>`<a class="attachment-chip" href="data:${a.contentType};base64,${a.contentBytes}" download="${escHtml(a.name)}">📄 ${escHtml(a.name)} <span style="color:#a19f9d">(${Math.round((a.size||0)/1024)}KB)</span></a>`).join('')}</div></div>`;
+      }
     }
   }
-
   document.getElementById('emailDetail').innerHTML=`<div class="detail-header"><div class="detail-subject">${escHtml(e.subject||'(no subject)')}</div><div class="detail-meta"><strong>From:</strong> ${escHtml(e.from?.emailAddress?.name||'')} &lt;${escHtml(e.from?.emailAddress?.address||'')}&gt;</div><div class="detail-meta"><strong>Date:</strong> ${new Date(e.receivedDateTime).toLocaleString()}</div>${attachHtml}<div style="margin-top:10px;display:flex;gap:8px;"><button onclick="replyTo()" style="padding:6px 14px;background:#0078d4;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">↩️ Reply</button><button onclick="forwardEmail()" style="padding:6px 14px;border:1px solid #8a8886;background:white;border-radius:4px;cursor:pointer;font-size:13px;">↪️ Forward</button></div></div><div class="detail-body">${bc}</div>`;
   document.getElementById('aiPanel').style.display='block';
   document.getElementById('aiResponse').classList.remove('visible');
@@ -183,7 +187,7 @@ function getAttachmentText(){
     if(mime.includes('text')||mime.includes('plain')){
       try{text+=`\n\n[Attachment: ${a.name}]\n${atob(a.contentBytes)}`;}catch(e){}
     } else {
-      text+=`\n\n[Attachment: ${a.name} — ${mime}, not readable as text]`;
+      text+=`\n\n[Attachment: ${a.name} — ${mime}]`;
     }
   }
   return text;
@@ -192,9 +196,64 @@ function getAttachmentText(){
 function replyTo(){if(!currentEmail)return;openCompose();document.getElementById('composeTo').value=currentEmail.from?.emailAddress?.address||'';document.getElementById('composeSubject').value='Re: '+(currentEmail.subject||'');}
 function forwardEmail(){if(!currentEmail)return;openCompose();document.getElementById('composeSubject').value='Fwd: '+(currentEmail.subject||'');document.getElementById('composeBody').value=`\n\n--- Forwarded ---\nFrom: ${currentEmail.from?.emailAddress?.address||''}\nSubject: ${currentEmail.subject||''}\n\n${currentEmail.body?.content?.replace(/<[^>]*>/g,'')||currentEmail.bodyPreview||''}`;}
 async function sendEmail(){const to=document.getElementById('composeTo').value.trim();const subject=document.getElementById('composeSubject').value.trim();const body=document.getElementById('composeBody').value.trim();if(!to||!subject||!body){alert('Please fill in all fields.');return;}const r=await fetch('https://graph.microsoft.com/v1.0/me/sendMail',{method:'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},body:JSON.stringify({message:{subject,body:{contentType:'Text',content:body},toRecipients:[{emailAddress:{address:to}}]}})});if(r.status===202){alert('Email sent! ✅');closeCompose();}else{const err=await r.json();alert('Failed: '+(err.error?.message||'Unknown error'));}}
-async function claudeAPI(prompt){const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})});const d=await r.json();if(d.error)throw new Error(JSON.stringify(d.error));return d.content?.[0]?.text||'No response.';}
-async function aiAction(type){if(!currentEmail)return;const emailText=currentEmail.body?.content?.replace(/<[^>]*>/g,'')||currentEmail.bodyPreview||'';const attachText=getAttachmentText();const fullContent=emailText+attachText;const sender=currentEmail.from?.emailAddress?.name||currentEmail.from?.emailAddress?.address||'Unknown';const prompts={summarize:`Summarize this email${attachText?` and its attachments`:`'`} in 2-3 sentences, plain text only:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,reply:`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a reply as Sam — short, direct, no fluff. RULES: max 2-3 sentences, no bullet points, no "Dear X", no "I hope this finds you well", no placeholder text, start directly with the response, plain text only.${attachText?` Note: the email has attachments — factor them into your reply if relevant.`:''} End with EXACTLY this signature and nothing else:${SIG}\n\nEmail to reply to:\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,action_items:`List action items as a short numbered list, plain text:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,tone:`Analyze the tone in 1-2 sentences:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,translate:`Translate to English if not already, else Spanish:\n\n${emailText}`};const aiResp=document.getElementById('aiResponse');aiResp.textContent='⏳ Claude is thinking...';aiResp.classList.add('visible');try{const text=await claudeAPI(prompts[type]);aiResp.textContent=text;if(type==='reply'&&confirm('Open draft in compose?')){openCompose();document.getElementById('composeTo').value=currentEmail.from?.emailAddress?.address||'';document.getElementById('composeSubject').value='Re: '+(currentEmail.subject||'');document.getElementById('composeBody').value=text;}}catch(err){aiResp.textContent='Error: '+err.message;}}
-async function aiCompose(){const to=document.getElementById('composeTo').value;const subject=document.getElementById('composeSubject').value;const partial=document.getElementById('composeBody').value;const prompt=`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a short direct email as Sam. RULES: max 2-3 sentences, no bullet points, no formal openers, no placeholder text, plain text only. End with EXACTLY this signature and nothing else:${SIG}\n\nTo: ${to||'someone'}\nSubject: ${subject||'not specified'}\n${partial?'Context:\n'+partial:''}`;const aiResp=document.getElementById('composeAiResponse');aiResp.textContent='⏳ Drafting...';aiResp.classList.add('visible');try{const text=await claudeAPI(prompt);aiResp.textContent=text;if(confirm('Use this draft?'))document.getElementById('composeBody').value=text;}catch(err){aiResp.textContent='Error: '+err.message;}}
+
+async function claudeAPI(prompt,tools){
+  const body={model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]};
+  if(tools)body.tools=tools;
+  const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(d.error)throw new Error(JSON.stringify(d.error));
+  return d;
+}
+
+async function aiAction(type){
+  if(!currentEmail)return;
+  const emailText=currentEmail.body?.content?.replace(/<[^>]*>/g,'')||currentEmail.bodyPreview||'';
+  const attachText=getAttachmentText();
+  const fullContent=emailText+attachText;
+  const sender=currentEmail.from?.emailAddress?.name||currentEmail.from?.emailAddress?.address||'Unknown';
+  const aiResp=document.getElementById('aiResponse');
+  aiResp.classList.remove('research');
+  aiResp.textContent='⏳ Claude is thinking...';
+  aiResp.classList.add('visible');
+
+  if(type==='research'){
+    try{
+      aiResp.textContent='🔍 Researching...';
+      const searchPrompt=`Based on this email, identify the most important topic, question, or issue that would benefit from web research. Then search for current, relevant information about it and provide a concise research summary with key findings.\n\nEmail from: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`;
+      const d=await claudeAPI(searchPrompt,[{type:'web_search_20250305',name:'web_search'}]);
+      let result='';
+      for(const block of d.content){
+        if(block.type==='text')result+=block.text;
+      }
+      aiResp.textContent=result||'No research results found.';
+      aiResp.classList.add('research');
+    }catch(err){aiResp.textContent='Error: '+err.message;}
+    return;
+  }
+
+  const prompts={
+    summarize:`Summarize this email${attachText?' and its attachments':''} in 2-3 sentences, plain text only:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
+    reply:`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a reply as Sam — short, direct, no fluff. RULES: max 2-3 sentences, no bullet points, no "Dear X", no "I hope this finds you well", no placeholder text, start directly with the response, plain text only.${attachText?' Note: the email has attachments — factor them into your reply if relevant.':''} End with EXACTLY this signature and nothing else:${SIG}\n\nEmail to reply to:\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
+    action_items:`List action items as a short numbered list, plain text:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
+    tone:`Analyze the tone in 1-2 sentences:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,
+    translate:`Translate to English if not already, else Spanish:\n\n${emailText}`
+  };
+
+  try{
+    const d=await claudeAPI(prompts[type]);
+    const text=d.content?.[0]?.text||'No response.';
+    aiResp.textContent=text;
+    if(type==='reply'&&confirm('Open draft in compose?')){
+      openCompose();
+      document.getElementById('composeTo').value=currentEmail.from?.emailAddress?.address||'';
+      document.getElementById('composeSubject').value='Re: '+(currentEmail.subject||'');
+      document.getElementById('composeBody').value=text;
+    }
+  }catch(err){aiResp.textContent='Error: '+err.message;}
+}
+
+async function aiCompose(){const to=document.getElementById('composeTo').value;const subject=document.getElementById('composeSubject').value;const partial=document.getElementById('composeBody').value;const prompt=`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a short direct email as Sam. RULES: max 2-3 sentences, no bullet points, no formal openers, no placeholder text, plain text only. End with EXACTLY this signature and nothing else:${SIG}\n\nTo: ${to||'someone'}\nSubject: ${subject||'not specified'}\n${partial?'Context:\n'+partial:''}`;const aiResp=document.getElementById('composeAiResponse');aiResp.textContent='⏳ Drafting...';aiResp.classList.add('visible');try{const d=await claudeAPI(prompt);const text=d.content?.[0]?.text||'';aiResp.textContent=text;if(confirm('Use this draft?'))document.getElementById('composeBody').value=text;}catch(err){aiResp.textContent='Error: '+err.message;}}
 function openCompose(){document.getElementById('composeModal').classList.add('open');}
 function closeCompose(){document.getElementById('composeModal').classList.remove('open');document.getElementById('composeTo').value='';document.getElementById('composeSubject').value='';document.getElementById('composeBody').value='';document.getElementById('composeAiResponse').classList.remove('visible');}
 function formatDate(dt){const d=new Date(dt),n=new Date();return d.toDateString()===n.toDateString()?d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString([],{month:'short',day:'numeric'});}
