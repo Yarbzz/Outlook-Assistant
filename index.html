@@ -16,7 +16,12 @@
   .sidebar-btn.active { background: #deecf9; color: #0078d4; font-weight: 600; }
   .sidebar-section { padding: 10px 16px 4px; font-size: 11px; font-weight: 600; color: #605e5c; text-transform: uppercase; letter-spacing: 0.5px; }
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .email-list { width: 340px; background: white; border-right: 1px solid #edebe9; overflow-y: auto; }
+  .email-list { width: 340px; background: white; border-right: 1px solid #edebe9; overflow-y: auto; display: flex; flex-direction: column; }
+  .search-box { padding: 10px 12px; border-bottom: 1px solid #edebe9; position: sticky; top: 0; background: white; z-index: 1; }
+  .search-box input { width: 100%; padding: 7px 10px 7px 30px; border: 1px solid #8a8886; border-radius: 4px; font-size: 13px; background: #f3f2f1 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23605e5c' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 8px center; }
+  .search-box input:focus { outline: none; border-color: #0078d4; background-color: white; }
+  .email-items-container { flex: 1; }
+  .load-more-indicator { text-align: center; padding: 12px; font-size: 12px; color: #605e5c; }
   .email-item { padding: 12px 16px; border-bottom: 1px solid #f3f2f1; cursor: pointer; transition: background 0.15s; }
   .email-item:hover { background: #f3f2f1; }
   .email-item.selected { background: #deecf9; border-left: 3px solid #0078d4; }
@@ -29,7 +34,7 @@
   .detail-header { background: white; border-radius: 4px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .detail-subject { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
   .detail-meta { font-size: 13px; color: #605e5c; margin-bottom: 4px; }
-  .detail-body { background: white; border-radius: 4px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .detail-body { background: white; border-radius: 4px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 14px; line-height: 1.6; }
   .attachments { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
   .attachment-chip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f0f6ff; border: 1px solid #c7e0f4; border-radius: 20px; font-size: 12px; color: #0078d4; cursor: pointer; text-decoration: none; transition: background 0.15s; }
   .attachment-chip:hover { background: #deecf9; }
@@ -40,7 +45,7 @@
   .ai-btn:hover { background: #0078d4; color: white; }
   .ai-btn.research { border-color: #107c10; color: #107c10; }
   .ai-btn.research:hover { background: #107c10; color: white; }
-  .ai-response { background: #f0f6ff; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.5; color: #323130; border-left: 3px solid #0078d4; display: none; margin-top: 8px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+  .ai-response { background: #f0f6ff; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.6; color: #323130; border-left: 3px solid #0078d4; display: none; margin-top: 8px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; }
   .ai-response.visible { display: block; }
   .ai-response.research { border-left-color: #107c10; background: #f0fff0; }
   .compose-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
@@ -84,7 +89,7 @@
     <span style="font-size:24px;">📧</span>
     <div><h1>Claude Outlook Assistant</h1><span id="userEmail">Loading...</span></div>
     <div style="margin-left:auto; display:flex; gap:10px;">
-      <button onclick="loadEmails()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;">↻ Refresh</button>
+      <button onclick="loadEmails(currentFolder)" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;">↻ Refresh</button>
       <button onclick="signOut()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;">Sign out</button>
     </div>
   </div>
@@ -99,7 +104,15 @@
     </div>
     <div class="main">
       <div style="display:flex; flex:1; overflow:hidden;">
-        <div class="email-list" id="emailList"><div class="loading"><div class="spinner"></div><br>Loading...</div></div>
+        <div class="email-list" id="emailList">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search emails..." oninput="handleSearch(this.value)" />
+          </div>
+          <div class="email-items-container" id="emailItems">
+            <div class="loading"><div class="spinner"></div><br>Loading...</div>
+          </div>
+          <div class="load-more-indicator" id="loadMoreIndicator" style="display:none;">Loading more...</div>
+        </div>
         <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
           <div class="email-detail" id="emailDetail"><div class="empty-state"><div class="big-icon">📬</div><div>Select an email to read it</div></div></div>
           <div class="ai-panel" id="aiPanel" style="display:none;">
@@ -142,7 +155,8 @@ const PROXY_URL='https://anthropic-proxy.yarbs7sam.workers.dev';
 const REDIRECT_URI=window.location.origin+window.location.pathname;
 const SCOPES='openid profile email Mail.Read Mail.Send User.Read offline_access';
 const SIG=`\n\nThanks,\nSam Yarbrough | Construction Manager\n2415 E. Camelback Road, Suite 400 | Phoenix, AZ 85016\nOffice: 602.682.6075 | Mobile: 480.427.7747\nsam@accelerateddevelopment.com | www.accelerateddevelopment.com`;
-let accessToken=null,currentEmail=null,currentAttachments=[],emails=[];
+
+let accessToken=null,currentEmail=null,currentAttachments=[],emails=[],nextLink=null,isLoadingMore=false,currentFolder='inbox',searchTimeout=null;
 
 function base64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 async function generatePKCE(){const verifier=base64url(crypto.getRandomValues(new Uint8Array(32)));const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier));const challenge=base64url(hash);return{verifier,challenge};}
@@ -152,9 +166,78 @@ async function exchangeCode(code){const verifier=sessionStorage.getItem('pkce_ve
 async function refreshToken(rt){const b=new URLSearchParams({client_id:CLIENT_ID,refresh_token:rt,grant_type:'refresh_token',scope:SCOPES});const r=await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b});return r.json();}
 async function init(){const p=new URLSearchParams(window.location.search);const code=p.get('code');if(code){window.history.replaceState({},'',window.location.pathname);const t=await exchangeCode(code);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);if(t.refresh_token)localStorage.setItem('ms_refresh_token',t.refresh_token);showApp();}else alert('Auth failed: '+(t.error_description||JSON.stringify(t)));return;}const s=localStorage.getItem('ms_access_token');if(s){accessToken=s;showApp();return;}const rf=localStorage.getItem('ms_refresh_token');if(rf){const t=await refreshToken(rf);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);showApp();}}}
 async function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('appScreen').style.display='flex';await loadUser();await loadEmails('inbox');}
-async function graphGet(path){const r=await fetch(`https://graph.microsoft.com/v1.0${path}`,{headers:{Authorization:`Bearer ${accessToken}`}});if(r.status===401){const rf=localStorage.getItem('ms_refresh_token');if(rf){const t=await refreshToken(rf);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);return graphGet(path);}}signOut();return null;}return r.json();}
+async function graphGet(path){const r=await fetch(path.startsWith('https://')?path:`https://graph.microsoft.com/v1.0${path}`,{headers:{Authorization:`Bearer ${accessToken}`}});if(r.status===401){const rf=localStorage.getItem('ms_refresh_token');if(rf){const t=await refreshToken(rf);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);return graphGet(path);}}signOut();return null;}return r.json();}
 async function loadUser(){const d=await graphGet('/me');if(d)document.getElementById('userEmail').textContent=d.mail||d.userPrincipalName||'';}
-async function loadEmails(folder='inbox'){document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));const btn=document.getElementById('btn-'+(folder==='sentitems'?'sent':folder==='deleteditems'?'deleted':folder));if(btn)btn.classList.add('active');document.getElementById('emailList').innerHTML='<div class="loading"><div class="spinner"></div><br>Loading...</div>';document.getElementById('emailDetail').innerHTML='<div class="empty-state"><div class="big-icon">📬</div><div>Select an email to read it</div></div>';document.getElementById('aiPanel').style.display='none';const d=await graphGet(`/me/mailFolders/${folder}/messages?$top=30&$select=id,subject,from,receivedDateTime,bodyPreview,isRead,body,hasAttachments&$orderby=receivedDateTime desc`);if(!d||!d.value)return;emails=d.value;const u=emails.filter(e=>!e.isRead).length;const badge=document.getElementById('unread-badge');if(badge)badge.textContent=u>0?u:'';if(!emails.length){document.getElementById('emailList').innerHTML='<div class="loading">No emails found</div>';return;}document.getElementById('emailList').innerHTML=emails.map((e,i)=>`<div class="email-item ${!e.isRead?'unread':''}" onclick="selectEmail(${i})" id="email-item-${i}"><span class="email-date">${formatDate(e.receivedDateTime)}</span><div class="email-sender">${escHtml(e.from?.emailAddress?.name||e.from?.emailAddress?.address||'Unknown')}${e.hasAttachments?' 📎':''}</div><div class="email-subject">${escHtml(e.subject||'(no subject)')}</div><div class="email-preview">${escHtml(e.bodyPreview||'')}</div></div>`).join('');}
+
+async function loadEmails(folder='inbox'){
+  currentFolder=folder;
+  emails=[];nextLink=null;
+  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('btn-'+(folder==='sentitems'?'sent':folder==='deleteditems'?'deleted':folder));
+  if(btn)btn.classList.add('active');
+  document.getElementById('emailItems').innerHTML='<div class="loading"><div class="spinner"></div><br>Loading...</div>';
+  document.getElementById('emailDetail').innerHTML='<div class="empty-state"><div class="big-icon">📬</div><div>Select an email to read it</div></div>';
+  document.getElementById('aiPanel').style.display='none';
+  document.getElementById('searchInput').value='';
+  const d=await graphGet(`/me/mailFolders/${folder}/messages?$top=50&$select=id,subject,from,receivedDateTime,bodyPreview,isRead,body,hasAttachments&$orderby=receivedDateTime desc`);
+  if(!d||!d.value)return;
+  emails=d.value;
+  nextLink=d['@odata.nextLink']||null;
+  const u=emails.filter(e=>!e.isRead).length;
+  const badge=document.getElementById('unread-badge');
+  if(badge)badge.textContent=u>0?u:'';
+  renderEmailList(emails);
+  setupScrollListener();
+}
+
+function renderEmailList(list){
+  if(!list.length){document.getElementById('emailItems').innerHTML='<div class="loading">No emails found</div>';return;}
+  document.getElementById('emailItems').innerHTML=list.map((e,i)=>`<div class="email-item ${!e.isRead?'unread':''}" onclick="selectEmail(${emails.indexOf(e)})" id="email-item-${emails.indexOf(e)}"><span class="email-date">${formatDate(e.receivedDateTime)}</span><div class="email-sender">${escHtml(e.from?.emailAddress?.name||e.from?.emailAddress?.address||'Unknown')}${e.hasAttachments?' 📎':''}</div><div class="email-subject">${escHtml(e.subject||'(no subject)')}</div><div class="email-preview">${escHtml(e.bodyPreview||'')}</div></div>`).join('');
+}
+
+function setupScrollListener(){
+  const list=document.getElementById('emailList');
+  list.onscroll=async()=>{
+    if(isLoadingMore||!nextLink)return;
+    if(list.scrollTop+list.clientHeight>=list.scrollHeight-100){
+      isLoadingMore=true;
+      document.getElementById('loadMoreIndicator').style.display='block';
+      const d=await graphGet(nextLink);
+      if(d&&d.value){
+        emails=[...emails,...d.value];
+        nextLink=d['@odata.nextLink']||null;
+        renderEmailList(emails);
+      }
+      document.getElementById('loadMoreIndicator').style.display='none';
+      isLoadingMore=false;
+    }
+  };
+}
+
+function handleSearch(query){
+  clearTimeout(searchTimeout);
+  searchTimeout=setTimeout(async()=>{
+    if(!query.trim()){renderEmailList(emails);return;}
+    const q=query.toLowerCase();
+    const local=emails.filter(e=>(e.subject||'').toLowerCase().includes(q)||(e.from?.emailAddress?.name||'').toLowerCase().includes(q)||(e.bodyPreview||'').toLowerCase().includes(q));
+    if(local.length){renderEmailList(local);return;}
+    document.getElementById('emailItems').innerHTML='<div class="loading"><div class="spinner"></div><br>Searching...</div>';
+    const d=await graphGet(`/me/messages?$search="${encodeURIComponent(query)}"&$top=50&$select=id,subject,from,receivedDateTime,bodyPreview,isRead,body,hasAttachments`);
+    if(d&&d.value){
+      const merged=[...emails];
+      d.value.forEach(e=>{if(!merged.find(x=>x.id===e.id))merged.push(e);});
+      renderEmailList(d.value.length?d.value:local);
+    }
+  },400);
+}
+
+async function getRelatedEmails(subject,sender){
+  const keywords=subject.replace(/^(re:|fw:|fwd:)\s*/gi,'').trim().split(/\s+/).filter(w=>w.length>4).slice(0,3).join(' ');
+  if(!keywords)return[];
+  const d=await graphGet(`/me/messages?$search="${encodeURIComponent(keywords)}"&$top=5&$select=id,subject,from,receivedDateTime,bodyPreview`);
+  if(!d||!d.value)return[];
+  return d.value.filter(e=>e.id!==currentEmail?.id).slice(0,3);
+}
 
 async function selectEmail(i){
   document.querySelectorAll('.email-item').forEach(el=>el.classList.remove('selected'));
@@ -184,11 +267,8 @@ function getAttachmentText(){
   for(const a of currentAttachments){
     if(!a.contentBytes)continue;
     const mime=a.contentType||'';
-    if(mime.includes('text')||mime.includes('plain')){
-      try{text+=`\n\n[Attachment: ${a.name}]\n${atob(a.contentBytes)}`;}catch(e){}
-    } else {
-      text+=`\n\n[Attachment: ${a.name} — ${mime}]`;
-    }
+    if(mime.includes('text')||mime.includes('plain')){try{text+=`\n\n[Attachment: ${a.name}]\n${atob(a.contentBytes)}`;}catch(e){}}
+    else{text+=`\n\n[Attachment: ${a.name} — ${mime}]`;}
   }
   return text;
 }
@@ -217,15 +297,24 @@ async function aiAction(type){
   aiResp.textContent='⏳ Claude is thinking...';
   aiResp.classList.add('visible');
 
+  // Get related emails for reply and research
+  let relatedContext='';
+  if(type==='reply'||type==='research'||type==='action_items'){
+    aiResp.textContent='🔎 Finding related emails...';
+    const related=await getRelatedEmails(currentEmail.subject||'',sender);
+    if(related.length){
+      relatedContext='\n\n--- Related emails for context ---\n'+related.map(e=>`From: ${e.from?.emailAddress?.name||e.from?.emailAddress?.address}\nSubject: ${e.subject}\nPreview: ${e.bodyPreview}`).join('\n\n');
+    }
+    aiResp.textContent='⏳ Claude is thinking...';
+  }
+
   if(type==='research'){
     try{
       aiResp.textContent='🔍 Researching...';
-      const searchPrompt=`Based on this email, identify the most important topic, question, or issue that would benefit from web research. Then search for current, relevant information about it and provide a concise research summary with key findings.\n\nEmail from: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`;
+      const searchPrompt=`Based on this email, identify the most important topic or question that would benefit from web research. Search for current relevant information and provide a concise summary with key findings.\n\nEmail from: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}${relatedContext}`;
       const d=await claudeAPI(searchPrompt,[{type:'web_search_20250305',name:'web_search'}]);
       let result='';
-      for(const block of d.content){
-        if(block.type==='text')result+=block.text;
-      }
+      for(const block of d.content){if(block.type==='text')result+=block.text;}
       aiResp.textContent=result||'No research results found.';
       aiResp.classList.add('research');
     }catch(err){aiResp.textContent='Error: '+err.message;}
@@ -234,8 +323,8 @@ async function aiAction(type){
 
   const prompts={
     summarize:`Summarize this email${attachText?' and its attachments':''} in 2-3 sentences, plain text only:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
-    reply:`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a reply as Sam — short, direct, no fluff. RULES: max 2-3 sentences, no bullet points, no "Dear X", no "I hope this finds you well", no placeholder text, start directly with the response, plain text only.${attachText?' Note: the email has attachments — factor them into your reply if relevant.':''} End with EXACTLY this signature and nothing else:${SIG}\n\nEmail to reply to:\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
-    action_items:`List action items as a short numbered list, plain text:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
+    reply:`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a reply as Sam — short, direct, no fluff. RULES: max 2-3 sentences, no bullet points, no "Dear X", no "I hope this finds you well", no placeholder text, start directly with the response, plain text only.${attachText?' The email has attachments — factor them in if relevant.':''}${relatedContext?' Use the related emails below for additional context if helpful.':''} End with EXACTLY this signature and nothing else:${SIG}\n\nEmail to reply to:\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}${relatedContext}`,
+    action_items:`List action items as a short numbered list, plain text:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}${relatedContext}`,
     tone:`Analyze the tone in 1-2 sentences:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,
     translate:`Translate to English if not already, else Spanish:\n\n${emailText}`
   };
