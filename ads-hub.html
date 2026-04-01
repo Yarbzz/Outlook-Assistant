@@ -273,7 +273,7 @@ tr:hover .row-actions{opacity:1}
     <div class="bid-section">
       <div class="bid-section-title">Project Details</div>
       <div class="bid-field"><label>Project Name</label><input id="b-projName" placeholder="Tractor Supply — Taylor, TX"/></div>
-      <div class="bid-field"><label>Location</label><input id="b-projLoc" placeholder="City, State"/></div>
+      <div class="bid-field"><label>Location</label><input id="b-projLoc" placeholder="City, State" oninput="filterByLocation()"/></div>
       <div class="bid-field"><label>Type</label>
         <select id="b-projType">
           <option>Retail Development</option><option>Mixed Use</option><option>Industrial</option>
@@ -292,6 +292,8 @@ tr:hover .row-actions{opacity:1}
         <div class="disc-chip active" data-disc="Surveying" onclick="toggleDisc(this)">📐 Survey</div>
         <div class="disc-chip active" data-disc="Architecture" onclick="toggleDisc(this)">🏛️ Arch</div>
         <div class="disc-chip active" data-disc="Traffic/Transportation" onclick="toggleDisc(this)">🚦 Traffic</div>
+        <div class="disc-chip active" data-disc="General Contractor" onclick="toggleDisc(this)">🏗️ GC</div>
+        <div class="disc-chip" data-disc="Signage" onclick="toggleDisc(this)">🪧 Signage</div>
       </div>
     </div>
     <div class="bid-section" style="flex:1">
@@ -329,6 +331,10 @@ function showPage(name) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'bid' && bidConsultants.length === 0) {
+    importPreferred();
+  }
+  if (name === 'bid') renderConsultantList();
 }
 
 function toast(msg) {
@@ -391,13 +397,74 @@ function saveVendors() {
 function normalizeType(t) {
   if (!t || t === 'nan') return '';
   t = t.replace(/\n/g,' ').trim();
-  const map = {
-    'Civil':'Civil Engineer','Civil Engineers':'Civil Engineer','Civil Engineering':'Civil Engineer',
-    'Civil Engineers/ Surveyor':'Civil Engineer','GC':'General Contractor','GeoTech':'Geotechnical',
-    'Enviromental':'Environmental','Enviornmental':'Environmental','Land Surveying':'Surveyor',
-    'Soils, Enviromental':'Soils, Environmental','Engineering-Structural':'Structural Engineer'
-  };
-  return map[t] || t;
+  const tl = t.toLowerCase();
+  if (tl.includes('general contractor') || tl === 'gc') return 'General Contractor';
+  if (tl.includes('landscape')) return 'Landscape Architect';
+  if (tl.includes('architect')) return 'Architect';
+  if (tl.includes('traffic')) return 'Traffic Engineer';
+  if (tl.includes('structural')) return 'Structural Engineer';
+  if (tl.includes('signage')) return 'Signage';
+  if (tl.includes('mep')) return 'MEP';
+  if (tl.includes('facility')) return 'Facility Maintenance';
+  if (tl.includes('geotech')) return 'Geotechnical';
+  if (tl.includes('soils')) return 'Geotechnical';
+  if (tl === 'esa') return 'Environmental';
+  if (tl.includes('envir') || tl.includes('wetland')) return 'Environmental';
+  if (tl.includes('land surveying') || tl.includes('platting')) return 'Surveyor';
+  if (tl.includes('survey')) return 'Surveyor';
+  if (tl.includes('civil')) return 'Civil Engineer';
+  if (tl.includes('engineer')) return 'Civil Engineer';
+  return t;
+}
+
+// Map vendor type to bid discipline chip name — handles ALL misspellings
+function typeToBidDisc(type, company) {
+  const t = (type || '').replace(/\n/g,' ').trim().toLowerCase();
+  const c = (company || '').toLowerCase();
+  // Explicit exclusions
+  if (t.includes('facility') || t.includes('third party') || t === 'tas' ||
+      t.includes('arborist') || t.includes('artist') || t.includes('owners rep') ||
+      t.includes('site planner') || t.includes('wetlands')) return null;
+  // GC first
+  if (t.includes('general contractor') || t === 'gc') return 'General Contractor';
+  // Architecture
+  if (t.includes('landscape')) return 'Landscape Architect';
+  if (t.includes('architect')) return 'Architecture';
+  // Traffic
+  if (t.includes('traffic')) return 'Traffic/Transportation';
+  // Signage
+  if (t.includes('signage')) return 'Signage';
+  // Geotechnical — soils first before environ
+  if (t.includes('geotech') || t.includes('soils') || t === 'esa') return 'Geotechnical';
+  // Environmental — catch ALL misspellings
+  if (t.includes('envir') || t.includes('wetland')) return 'Environmental';
+  // Try company name for blank types
+  if (!t) {
+    if (c.includes('survey') || c.includes('surveying')) return 'Surveying';
+    if (c.includes('environ')) return 'Environmental';
+    if (c.includes('civil')) return 'Civil/Site Engineering';
+    return null;
+  }
+  // Surveying
+  if (t.includes('land surveying') || t.includes('platting') || t.includes('survey')) return 'Surveying';
+  // Civil — catch all civil variants
+  if (t.includes('civil') || t.includes('engineer') || t.includes('engineering')) return 'Civil/Site Engineering';
+  return null;
+}
+
+// Check if vendor markets match a location string
+function vendorMatchesLocation(vendor, location) {
+  if (!location || !location.trim()) return true;
+  const loc = location.toLowerCase().trim();
+  const markets = (vendor.markets || '').toLowerCase();
+  if (markets.includes('national')) return true;
+  const parts = loc.split(',').map(s => s.trim());
+  const city = parts[0] || '';
+  const state = (parts[1] || '').trim();
+  if (state.length === 2 && markets.includes(state)) return true;
+  if (state.length > 2 && markets.includes(state)) return true;
+  if (city.length > 2 && markets.includes(city)) return true;
+  return false;
 }
 
 function statusBadge(s) {
@@ -672,6 +739,15 @@ function showBidTab(tab) {
   else if (tab === 'emails') renderEmailList();
 }
 
+function filterByLocation() {
+  const location = document.getElementById('b-projLoc')?.value?.trim() || '';
+  if (bidConsultants.length === 0) { importPreferred(); return; }
+  bidConsultants.forEach(c => {
+    c.selected = vendorMatchesLocation({markets: c.markets}, location);
+  });
+  renderConsultantList();
+}
+
 function renderConsultantList() {
   const discs = getActiveDiscs();
   const filtered = bidConsultants.filter(c => discs.includes(c.disc));
@@ -708,9 +784,11 @@ function renderConsultantList() {
       <div class="consultant-card ${c.selected?'selected':''}" onclick="toggleConsultant(${c.id})">
         <div class="check-box">${c.selected?'<svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>':''}</div>
         <div class="consultant-info">
-          <div class="consultant-name">${esc(c.name)}</div>
-          <div class="consultant-firm">${esc(c.firm)} · ${esc(c.email)}</div>
-          <span class="disc-tag">${esc(c.disc)}</span>
+          <div class="consultant-name">${esc(c.name)} ${c.status === '1 Preferred' ? '<span style="color:#10b981;font-size:11px">⭐</span>' : ''}</div>
+          <div class="consultant-firm">${esc(c.firm)}</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(c.email)}</div>
+          ${c.markets ? `<div style="font-size:11px;color:#3b82f6;margin-top:2px">📍 ${esc(c.markets)}</div>` : ''}
+          <span class="disc-tag" style="margin-top:4px">${esc(c.disc)}</span>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();removeConsultant(${c.id})" style="flex-shrink:0">✕</button>
       </div>
@@ -733,6 +811,7 @@ function renderAddForm() {
       <select id="nc-disc">
         <option>Civil/Site Engineering</option><option>Geotechnical</option><option>Environmental</option>
         <option>Surveying</option><option>Architecture</option><option>Traffic/Transportation</option>
+        <option>General Contractor</option><option>Signage</option>
       </select>
     </div>
     <div style="display:flex;gap:6px;margin-top:6px">
@@ -788,57 +867,87 @@ function removeConsultant(id) {
 }
 
 function importPreferred() {
-  const preferred = vendors.filter(v => v.status === '1 Preferred' && v.email);
+  const location = document.getElementById('b-projLoc')?.value?.trim() || '';
   const discs = getActiveDiscs();
+  // Get preferred + hired vendors that match active disciplines
+  const eligible = vendors.filter(v => {
+    if (v.status !== '1 Preferred' && v.status !== '2 Hired') return false;
+    if (!v.email && !v.phone) return false;
+    const disc = typeToBidDisc(v.type, v.company);
+    if (!disc) return false;
+    if (!discs.includes(disc)) return false;
+    return true;
+  });
   let added = 0;
-  preferred.forEach(v => {
-    if (bidConsultants.find(c => c.email === v.email)) return;
-    const typeNorm = normalizeType(v.type).toLowerCase();
-    const disc = discs.find(d => {
-      const dl = d.toLowerCase().split('/')[0];
-      return typeNorm.includes(dl) || dl.includes(typeNorm.split(' ')[0]);
-    }) || discs[0] || 'Civil/Site Engineering';
+  eligible.forEach(v => {
+    if (bidConsultants.find(c => c.email === v.email && v.email)) return;
+    const disc = typeToBidDisc(v.type, v.company) || discs[0] || 'Civil/Site Engineering';
     bidConsultants.push({
       id: nextConsultantId++,
       name: v.primaryContact || v.company,
       firm: v.company,
-      email: v.email,
-      phone: v.phone || '',
+      email: v.email || '',
+      phone: (v.phone || '').split('\n')[0],
+      markets: v.markets || '',
       disc,
-      selected: true
+      selected: vendorMatchesLocation(v, location),
+      status: v.status
     });
     added++;
   });
   renderConsultantList();
-  toast(`✅ Imported ${added} preferred vendors`);
+  toast(`✅ Loaded ${added} consultants — ${location ? 'filtered for ' + location : 'select location to filter'}`);
 }
 
 function renderEmailList() {
-  const content = document.getElementById('bid-content');
+  const el = document.getElementById('bid-content');
   const entries = Object.entries(bidEmailDrafts);
   if (!entries.length) {
-    content.innerHTML = '<div class="empty-state">No emails generated yet. Click "Generate RFP Emails".</div>';
+    el.innerHTML = '<div class="empty-state">No emails generated yet.<br>Select consultants and click "Generate RFP Emails".</div>';
     return;
   }
-  content.innerHTML = entries.map(([id, draft]) => {
+
+  // Group by discipline
+  const byDisc = {};
+  entries.forEach(([id, draft]) => {
     const c = bidConsultants.find(x => String(x.id) === String(id));
-    if (!c) return '';
-    return `
-      <div class="email-card">
-        <div class="email-card-header">
-          <div>
-            <div class="email-card-to"><strong>${esc(c.name)}</strong> — ${esc(c.firm)}</div>
-            <div style="font-size:11px;color:#6b7280;margin-top:2px">${esc(c.email)} · ${esc(c.disc)}</div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="editDraft(${c.id})">Edit</button>
-            <button class="btn btn-primary btn-sm" onclick="sendEmail(${c.id})">Send</button>
-          </div>
+    if (!c) return;
+    if (!byDisc[c.disc]) byDisc[c.disc] = [];
+    byDisc[c.disc].push({c, draft});
+  });
+
+  const totalSent = Object.values(byDisc).flat().filter(x => x.c.sent).length;
+  const total = entries.length;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <span style="font-size:13px;font-weight:600">${total} RFP Email${total!==1?'s':''} — ${Object.keys(byDisc).length} discipline${Object.keys(byDisc).length!==1?'s':''}</span>
+      <button class="btn btn-green btn-sm" onclick="sendAll()">🚀 Send All Unsent</button>
+    </div>
+    ${Object.entries(byDisc).map(([disc, items]) => `
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding:6px 10px;background:#1e2334;border-radius:5px;border:1px solid #2a3047">
+          ${disc} — ${items.length} email${items.length!==1?'s':''}
         </div>
-        <div class="email-body" id="draft-${c.id}">${esc(draft)}</div>
+        ${items.map(({c, draft}) => `
+          <div class="email-card" style="margin-bottom:8px">
+            <div class="email-card-header">
+              <div>
+                <div class="email-card-to"><strong>${esc(c.name)}</strong> — ${esc(c.firm)}</div>
+                <div style="font-size:11px;color:#6b7280;margin-top:2px">${esc(c.email)}${c.markets?' · 📍'+esc(c.markets):''}</div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">
+                ${c.sent ? '<span style="color:#10b981;font-size:12px">✓ Sent</span>' : ''}
+                <button class="btn btn-ghost btn-sm" onclick="editDraft(${c.id})">Edit</button>
+                <button class="btn btn-primary btn-sm" onclick="sendEmail(${c.id})">${c.sent?'Resend':'Send'}</button>
+              </div>
+            </div>
+            <div class="email-body" id="draft-${c.id}">${esc(draft)}</div>
+          </div>
+        `).join('')}
       </div>
-    `;
-  }).join('');
+    `).join('')}
+  `;
 }
 
 async function generateEmails() {
@@ -854,13 +963,43 @@ async function generateEmails() {
   const dueStr = projDue ? new Date(projDue + 'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : 'to be determined';
 
   showBidTab('emails');
-  document.getElementById('bid-content').innerHTML = `<div class="status-bar"><div class="spinner"></div> Generating emails for ${selected.length} consultant(s)...</div>`;
+  document.getElementById('bid-content').innerHTML = `<div class="status-bar"><div class="spinner"></div> Generating ${selected.length} separate RFP emails by discipline...</div>`;
+
+  // Discipline-specific scope descriptions
+  const discScope = {
+    'Civil/Site Engineering': 'civil engineering and site development services including grading, drainage, utility coordination, and construction documents',
+    'Geotechnical': 'geotechnical investigation services including soil borings, lab testing, and a geotechnical report with foundation recommendations',
+    'Environmental': 'Phase I Environmental Site Assessment (ESA) per ASTM E1527-21 standards',
+    'Surveying': 'boundary and topographic survey, ALTA/NSPS Land Title Survey, and any required platting services',
+    'Architecture': 'architectural design and construction documents for the project',
+    'Traffic/Transportation': 'traffic impact analysis and any required transportation studies for entitlement approval',
+    'General Contractor': 'general contracting services including preconstruction, value engineering, and construction management',
+    'Signage': 'site signage design, permitting, fabrication and installation'
+  };
 
   bidEmailDrafts = {};
   for (const c of selected) {
     try {
+      const discDetail = discScope[c.disc] || c.disc + ' services';
       const text = await callClaude(
-        `You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a short professional RFP email to ${c.name} at ${c.firm} for ${c.disc} services.\n\nProject: ${projName}\nLocation: ${projLoc}\nType: ${projType}\nScope: ${projScope || 'Commercial development project'}\nProposal due: ${dueStr}\n\nRules: 3 short paragraphs max, no bullet points, direct and professional. End with exactly:${SIG}`
+        `You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a concise, professional RFP email specifically for ${c.disc} services.
+
+Recipient: ${c.name} at ${c.firm}
+Project: ${projName}
+Location: ${projLoc}
+Project Type: ${projType}
+Scope for this discipline: ${discDetail}
+${projScope ? 'Additional context: ' + projScope : ''}
+Proposal due: ${dueStr}
+
+Rules:
+- This email is ONLY requesting ${c.disc} services — do not mention other disciplines
+- 3 short paragraphs max
+- Paragraph 1: Brief intro of the project and why you are reaching out to them specifically
+- Paragraph 2: What you need from them for this specific discipline and the proposal due date
+- Paragraph 3: Short closing asking them to confirm interest
+- No bullet points, plain text, direct and professional
+- End with EXACTLY this signature:${SIG}`
       );
       bidEmailDrafts[c.id] = text;
     } catch(err) {
@@ -900,7 +1039,7 @@ async function sendEmail(id) {
       headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
       body: JSON.stringify({message:{subject,body:{contentType:'Text',content:draft},toRecipients:[{emailAddress:{address:c.email,name:c.name}}]}})
     });
-    if (r.status === 202) { toast(`✅ Sent to ${c.name}!`); }
+    if (r.status === 202) { c.sent = true; toast(`✅ Sent to ${c.name}!`); renderEmailList(); }
     else { const e = await r.json(); alert('Failed: ' + (e.error?.message || 'Unknown error')); }
   } catch(err) { alert('Error: ' + err.message); }
 }
