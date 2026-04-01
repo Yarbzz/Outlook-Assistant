@@ -810,6 +810,7 @@ render();
 // ══════════════════════════════════════════════════
 // BID REQUEST
 // ══════════════════════════════════════════════════
+let nextBidId = 1000;
 function switchBidTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
@@ -963,7 +964,7 @@ async function runResearch(){
   const discs=getSelectedDiscs();
   if(!location){alert('Please enter a project location first.');return;}
 
-  switchTab('research', document.querySelectorAll('.tab')[2]);
+  switchBidTab('research', document.querySelectorAll('.tab')[2]);
   document.getElementById('researchResults').innerHTML='<div class="status-bar"><div class="status-dot loading"></div>Researching consultants near '+location+'...</div>';
 
   try{
@@ -979,7 +980,7 @@ Please search for reputable consulting firms in the ${location} area for each di
 
 Format as a structured list by discipline. Focus on firms that work on commercial/retail development projects.`;
 
-    const d=await claudeAPI(prompt,[{type:'web_search_20250305',name:'web_search'}]);
+    const d=await claudeAPI(prompt,[{type:'web_search_20250305',name:'web_search'}]);  // using shared claudeAPI
     let result='';
     for(const block of d.content){if(block.type==='text')result+=block.text;}
 
@@ -990,7 +991,7 @@ Format as a structured list by discipline. Focus on firms that work on commercia
         <div class="research-result-detail" style="white-space:pre-wrap;line-height:1.7;">${result}</div>
       </div>
       <div style="margin-top:12px;">
-        <button class="btn btn-secondary btn-sm" onclick="toggleAddForm();switchTab('consultants',document.querySelectorAll('.tab')[0])">+ Add Found Consultants Manually</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleAddForm();switchBidTab('consultants',document.querySelectorAll('.tab')[0])">+ Add Found Consultants Manually</button>
       </div>`;
   }catch(err){
     document.getElementById('researchResults').innerHTML=`<div class="empty-state" style="color:var(--red);">Error: ${err.message}</div>`;
@@ -1008,7 +1009,7 @@ async function generateAllEmails(){
   const projDue=document.getElementById('projDue').value;
   const dueStr=projDue?new Date(projDue).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'to be determined';
 
-  switchTab('emails',document.querySelectorAll('.tab')[1]);
+  switchBidTab('emails',document.querySelectorAll('.tab')[1]);
   document.getElementById('emailPreviews').innerHTML='<div class="status-bar"><div class="status-dot loading"></div>Generating RFP emails for '+selected.length+' consultant(s)...</div>';
 
   emailDrafts={};
@@ -1116,7 +1117,7 @@ async function sendAllEmails(){
 
   if(!Object.keys(emailDrafts).length){
     alert('Please generate RFP emails first.');
-    switchTab('emails',document.querySelectorAll('.tab')[1]);
+    switchBidTab('emails',document.querySelectorAll('.tab')[1]);
     return;
   }
 
@@ -1130,13 +1131,8 @@ async function sendAllEmails(){
 
 // Set default due date to 2 weeks from now
 const _d=new Date();_d.setDate(_d.getDate()+14);
-document.getElementById('projDue').value=_d.toISOString().split('T')[0];
+const projDueEl=document.getElementById('projDue');if(projDueEl)projDueEl.value=_d.toISOString().split('T')[0];
 
-renderConsultants();
-
-
-// Fix nextId collision
-let nextBidId = 1000;
 
 // ── INIT ──
 updateStats();
