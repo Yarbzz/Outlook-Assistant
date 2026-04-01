@@ -7,21 +7,29 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #f3f2f1; color: #323130; min-height: 100vh; }
+
   .header { background: #0078d4; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
   .header h1 { font-size: 20px; font-weight: 600; }
+  .header span { font-size: 13px; opacity: 0.85; }
+
   .container { display: flex; height: calc(100vh - 56px); }
+
   .sidebar { width: 260px; background: white; border-right: 1px solid #edebe9; display: flex; flex-direction: column; }
   .sidebar-btn { padding: 12px 16px; cursor: pointer; border: none; background: none; text-align: left; width: 100%; font-size: 14px; color: #323130; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f3f2f1; transition: background 0.15s; }
   .sidebar-btn:hover { background: #f3f2f1; }
   .sidebar-btn.active { background: #deecf9; color: #0078d4; font-weight: 600; }
+  .sidebar-btn .icon { width: 20px; text-align: center; }
   .sidebar-section { padding: 10px 16px 4px; font-size: 11px; font-weight: 600; color: #605e5c; text-transform: uppercase; letter-spacing: 0.5px; }
+
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .email-list { width: 340px; background: white; border-right: 1px solid #edebe9; overflow-y: auto; display: flex; flex-direction: column; }
-  .search-box { padding: 10px 12px; border-bottom: 1px solid #edebe9; position: sticky; top: 0; background: white; z-index: 1; }
-  .search-box input { width: 100%; padding: 7px 10px 7px 30px; border: 1px solid #8a8886; border-radius: 4px; font-size: 13px; background: #f3f2f1 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23605e5c' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 8px center; }
-  .search-box input:focus { outline: none; border-color: #0078d4; background-color: white; }
-  .email-items-container { flex: 1; }
-  .load-more-indicator { text-align: center; padding: 12px; font-size: 12px; color: #605e5c; }
+
+  .toolbar { background: white; border-bottom: 1px solid #edebe9; padding: 10px 20px; display: flex; gap: 10px; align-items: center; }
+  .toolbar button { padding: 7px 16px; border-radius: 4px; border: 1px solid #8a8886; background: white; cursor: pointer; font-size: 13px; color: #323130; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .toolbar button:hover { background: #f3f2f1; }
+  .toolbar button.primary { background: #0078d4; color: white; border-color: #0078d4; }
+  .toolbar button.primary:hover { background: #106ebe; }
+
+  .email-list { width: 340px; background: white; border-right: 1px solid #edebe9; overflow-y: auto; }
   .email-item { padding: 12px 16px; border-bottom: 1px solid #f3f2f1; cursor: pointer; transition: background 0.15s; }
   .email-item:hover { background: #f3f2f1; }
   .email-item.selected { background: #deecf9; border-left: 3px solid #0078d4; }
@@ -30,24 +38,21 @@
   .email-subject { font-size: 12px; color: #605e5c; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .email-preview { font-size: 11px; color: #a19f9d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .email-date { font-size: 11px; color: #a19f9d; float: right; }
+
   .email-detail { flex: 1; overflow-y: auto; padding: 24px; background: #faf9f8; }
   .detail-header { background: white; border-radius: 4px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .detail-subject { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
   .detail-meta { font-size: 13px; color: #605e5c; margin-bottom: 4px; }
-  .detail-body { background: white; border-radius: 4px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 14px; line-height: 1.6; }
-  .attachments { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-  .attachment-chip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f0f6ff; border: 1px solid #c7e0f4; border-radius: 20px; font-size: 12px; color: #0078d4; cursor: pointer; text-decoration: none; transition: background 0.15s; }
-  .attachment-chip:hover { background: #deecf9; }
+  .detail-body { background: white; border-radius: 4px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+
   .ai-panel { background: white; border-top: 1px solid #edebe9; padding: 16px 20px; }
-  .ai-panel h3 { font-size: 13px; font-weight: 600; color: #0078d4; margin-bottom: 10px; }
+  .ai-panel h3 { font-size: 13px; font-weight: 600; color: #0078d4; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
   .ai-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
   .ai-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #0078d4; color: #0078d4; background: white; cursor: pointer; font-size: 12px; transition: all 0.15s; }
   .ai-btn:hover { background: #0078d4; color: white; }
-  .ai-btn.research { border-color: #107c10; color: #107c10; }
-  .ai-btn.research:hover { background: #107c10; color: white; }
-  .ai-response { background: #f0f6ff; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.6; color: #323130; border-left: 3px solid #0078d4; display: none; margin-top: 8px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; }
+  .ai-response { background: #f0f6ff; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.5; color: #323130; border-left: 3px solid #0078d4; display: none; margin-top: 8px; max-height: 180px; overflow-y: auto; }
   .ai-response.visible { display: block; }
-  .ai-response.research { border-left-color: #107c10; background: #f0fff0; }
+
   .compose-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
   .compose-modal.open { display: flex; }
   .compose-box { background: white; border-radius: 6px; width: 600px; max-width: 95vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
@@ -59,22 +64,28 @@
   .compose-field input, .compose-field textarea { width: 100%; padding: 8px 10px; border: 1px solid #8a8886; border-radius: 4px; font-size: 13px; font-family: inherit; }
   .compose-field textarea { height: 160px; resize: vertical; }
   .compose-footer { padding: 12px 16px; border-top: 1px solid #edebe9; display: flex; gap: 8px; justify-content: flex-end; }
+
   .auth-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: #f3f2f1; }
   .auth-card { background: white; border-radius: 8px; padding: 40px; width: 420px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
   .auth-card .logo { font-size: 48px; margin-bottom: 16px; }
   .auth-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
   .auth-card p { font-size: 14px; color: #605e5c; margin-bottom: 24px; }
-  .auth-card button { width: 100%; padding: 12px; background: #0078d4; color: white; border: none; border-radius: 4px; font-size: 15px; cursor: pointer; font-weight: 600; }
+  .auth-card button { width: 100%; padding: 12px; background: #0078d4; color: white; border: none; border-radius: 4px; font-size: 15px; cursor: pointer; font-weight: 600; transition: background 0.15s; }
   .auth-card button:hover { background: #106ebe; }
+
   .loading { text-align: center; padding: 40px; color: #605e5c; font-size: 14px; }
   .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #edebe9; border-top-color: #0078d4; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 8px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
   .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #a19f9d; font-size: 14px; gap: 8px; }
   .empty-state .big-icon { font-size: 48px; }
+
   .badge { background: #0078d4; color: white; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
 </style>
 </head>
 <body>
+
+<!-- AUTH SCREEN -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="logo">📧</div>
@@ -84,37 +95,55 @@
     <p style="margin-top:16px; font-size:12px; color:#a19f9d;">Powered by Microsoft Graph + Claude AI</p>
   </div>
 </div>
-<div id="appScreen" style="display:none; height:100vh; flex-direction:column;">
+
+<!-- MAIN APP -->
+<div id="appScreen" style="display:none; height:100vh; display:none; flex-direction:column;">
   <div class="header">
     <span style="font-size:24px;">📧</span>
-    <div><h1>Claude Outlook Assistant</h1><span id="userEmail">Loading...</span></div>
-    <div style="margin-left:auto; display:flex; gap:10px;">
-      <button onclick="loadEmails(currentFolder)" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;">↻ Refresh</button>
+    <div>
+      <h1>Claude Outlook Assistant</h1>
+      <span id="userEmail">Loading...</span>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+      <button onclick="loadEmails()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;">↻ Refresh</button>
       <button onclick="signOut()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; padding:6px 14px; border-radius:4px; cursor:pointer; font-size:13px;">Sign out</button>
     </div>
   </div>
+
   <div class="container">
     <div class="sidebar">
-      <div style="padding:12px 16px;"><button onclick="openCompose()" style="width:100%; padding:10px; background:#0078d4; color:white; border:none; border-radius:4px; cursor:pointer; font-size:14px; font-weight:600;">✏️ New Email</button></div>
+      <div style="padding:12px 16px;">
+        <button class="toolbar button primary" onclick="openCompose()" style="width:100%; padding:10px; background:#0078d4; color:white; border:none; border-radius:4px; cursor:pointer; font-size:14px; font-weight:600;">✏️ New Email</button>
+      </div>
       <div class="sidebar-section">Folders</div>
-      <button class="sidebar-btn active" onclick="loadEmails('inbox')" id="btn-inbox"><span>📥</span> Inbox <span class="badge" id="unread-badge"></span></button>
-      <button class="sidebar-btn" onclick="loadEmails('sentitems')" id="btn-sent"><span>📤</span> Sent Items</button>
-      <button class="sidebar-btn" onclick="loadEmails('drafts')" id="btn-drafts"><span>📝</span> Drafts</button>
-      <button class="sidebar-btn" onclick="loadEmails('deleteditems')" id="btn-deleted"><span>🗑️</span> Deleted Items</button>
+      <button class="sidebar-btn active" onclick="loadEmails('inbox')" id="btn-inbox">
+        <span class="icon">📥</span> Inbox <span class="badge" id="unread-badge">...</span>
+      </button>
+      <button class="sidebar-btn" onclick="loadEmails('sentitems')" id="btn-sent">
+        <span class="icon">📤</span> Sent Items
+      </button>
+      <button class="sidebar-btn" onclick="loadEmails('drafts')" id="btn-drafts">
+        <span class="icon">📝</span> Drafts
+      </button>
+      <button class="sidebar-btn" onclick="loadEmails('deleteditems')" id="btn-deleted">
+        <span class="icon">🗑️</span> Deleted Items
+      </button>
     </div>
+
     <div class="main">
       <div style="display:flex; flex:1; overflow:hidden;">
         <div class="email-list" id="emailList">
-          <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search emails..." oninput="handleSearch(this.value)" />
-          </div>
-          <div class="email-items-container" id="emailItems">
-            <div class="loading"><div class="spinner"></div><br>Loading...</div>
-          </div>
-          <div class="load-more-indicator" id="loadMoreIndicator" style="display:none;">Loading more...</div>
+          <div class="loading"><div class="spinner"></div><br>Loading emails...</div>
         </div>
+
         <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-          <div class="email-detail" id="emailDetail"><div class="empty-state"><div class="big-icon">📬</div><div>Select an email to read it</div></div></div>
+          <div class="email-detail" id="emailDetail">
+            <div class="empty-state">
+              <div class="big-icon">📬</div>
+              <div>Select an email to read it</div>
+            </div>
+          </div>
+
           <div class="ai-panel" id="aiPanel" style="display:none;">
             <h3>✨ Claude AI Assistant</h3>
             <div class="ai-actions">
@@ -123,7 +152,6 @@
               <button class="ai-btn" onclick="aiAction('action_items')">✅ Action Items</button>
               <button class="ai-btn" onclick="aiAction('tone')">🎭 Analyze Tone</button>
               <button class="ai-btn" onclick="aiAction('translate')">🌐 Translate</button>
-              <button class="ai-btn research" onclick="aiAction('research')">🔍 Research</button>
             </div>
             <div class="ai-response" id="aiResponse"></div>
           </div>
@@ -132,14 +160,30 @@
     </div>
   </div>
 </div>
+
+<!-- COMPOSE MODAL -->
 <div class="compose-modal" id="composeModal">
   <div class="compose-box">
-    <div class="compose-header"><span>✏️ New Message</span><button onclick="closeCompose()">×</button></div>
+    <div class="compose-header">
+      <span>✏️ New Message</span>
+      <button onclick="closeCompose()">×</button>
+    </div>
     <div class="compose-body">
-      <div class="compose-field"><label>To</label><input type="email" id="composeTo" placeholder="recipient@example.com" /></div>
-      <div class="compose-field"><label>Subject</label><input type="text" id="composeSubject" placeholder="Subject" /></div>
-      <div class="compose-field"><label>Message</label><textarea id="composeBody" placeholder="Write your message..."></textarea></div>
-      <button class="ai-btn" onclick="aiCompose()" style="font-size:13px; padding:8px 16px; margin-top:4px;">✨ AI Draft Help</button>
+      <div class="compose-field">
+        <label>To</label>
+        <input type="email" id="composeTo" placeholder="recipient@example.com" />
+      </div>
+      <div class="compose-field">
+        <label>Subject</label>
+        <input type="text" id="composeSubject" placeholder="Subject" />
+      </div>
+      <div class="compose-field">
+        <label>Message</label>
+        <textarea id="composeBody" placeholder="Write your message..."></textarea>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="ai-btn" onclick="aiCompose()" style="font-size:13px; padding:8px 16px;">✨ AI Draft Help</button>
+      </div>
       <div class="ai-response" id="composeAiResponse" style="margin-top:8px;"></div>
     </div>
     <div class="compose-footer">
@@ -148,205 +192,348 @@
     </div>
   </div>
 </div>
+
 <script>
-const CLIENT_ID='4f08beb7-ce0f-4296-9497-25581c642bda';
-const TENANT_ID='28239880-baec-474b-b395-8bd483ad9857';
-const PROXY_URL='https://anthropic-proxy.yarbs7sam.workers.dev';
-const REDIRECT_URI=window.location.origin+window.location.pathname;
-const SCOPES='openid profile email Mail.Read Mail.Send User.Read offline_access';
-const SIG=`\n\nThanks,\nSam Yarbrough | Construction Manager\n2415 E. Camelback Road, Suite 400 | Phoenix, AZ 85016\nOffice: 602.682.6075 | Mobile: 480.427.7747\nsam@accelerateddevelopment.com | www.accelerateddevelopment.com`;
+const CLIENT_ID = '4f08beb7-ce0f-4296-9497-25581c642bda';
+const TENANT_ID = '28239880-baec-474b-b395-8bd483ad9857';
+const CLIENT_SECRET = 'UBl8Q~ILe11GJeJ-AWb5qcXp8YuPBCRu12xxjbW8';
+const REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
+const SCOPES = 'openid profile email Mail.Read Mail.Send User.Read offline_access';
 
-let accessToken=null,currentEmail=null,currentAttachments=[],emails=[],nextLink=null,isLoadingMore=false,currentFolder='inbox',searchTimeout=null;
+let accessToken = null;
+let currentEmail = null;
+let emails = [];
 
-function base64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
-async function generatePKCE(){const verifier=base64url(crypto.getRandomValues(new Uint8Array(32)));const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier));const challenge=base64url(hash);return{verifier,challenge};}
-async function signIn(){const{verifier,challenge}=await generatePKCE();sessionStorage.setItem('pkce_verifier',verifier);const p=new URLSearchParams({client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT_URI,scope:SCOPES,response_mode:'query',prompt:'select_account',code_challenge:challenge,code_challenge_method:'S256'});window.location.href=`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?${p}`;}
-function signOut(){localStorage.removeItem('ms_access_token');localStorage.removeItem('ms_refresh_token');accessToken=null;document.getElementById('authScreen').style.display='flex';document.getElementById('appScreen').style.display='none';}
-async function exchangeCode(code){const verifier=sessionStorage.getItem('pkce_verifier');const b=new URLSearchParams({client_id:CLIENT_ID,code,redirect_uri:REDIRECT_URI,grant_type:'authorization_code',scope:SCOPES,code_verifier:verifier});const r=await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b});return r.json();}
-async function refreshToken(rt){const b=new URLSearchParams({client_id:CLIENT_ID,refresh_token:rt,grant_type:'refresh_token',scope:SCOPES});const r=await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b});return r.json();}
-async function init(){const p=new URLSearchParams(window.location.search);const code=p.get('code');if(code){window.history.replaceState({},'',window.location.pathname);const t=await exchangeCode(code);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);if(t.refresh_token)localStorage.setItem('ms_refresh_token',t.refresh_token);showApp();}else alert('Auth failed: '+(t.error_description||JSON.stringify(t)));return;}const s=localStorage.getItem('ms_access_token');if(s){accessToken=s;showApp();return;}const rf=localStorage.getItem('ms_refresh_token');if(rf){const t=await refreshToken(rf);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);showApp();}}}
-async function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('appScreen').style.display='flex';await loadUser();await loadEmails('inbox');}
-async function graphGet(path){const r=await fetch(path.startsWith('https://')?path:`https://graph.microsoft.com/v1.0${path}`,{headers:{Authorization:`Bearer ${accessToken}`}});if(r.status===401){const rf=localStorage.getItem('ms_refresh_token');if(rf){const t=await refreshToken(rf);if(t.access_token){accessToken=t.access_token;localStorage.setItem('ms_access_token',t.access_token);return graphGet(path);}}signOut();return null;}return r.json();}
-async function loadUser(){const d=await graphGet('/me');if(d)document.getElementById('userEmail').textContent=d.mail||d.userPrincipalName||'';}
+// ─── AUTH ───────────────────────────────────────────────────────────────────
 
-async function loadEmails(folder='inbox'){
-  currentFolder=folder;
-  emails=[];nextLink=null;
-  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
-  const btn=document.getElementById('btn-'+(folder==='sentitems'?'sent':folder==='deleteditems'?'deleted':folder));
-  if(btn)btn.classList.add('active');
-  document.getElementById('emailItems').innerHTML='<div class="loading"><div class="spinner"></div><br>Loading...</div>';
-  document.getElementById('emailDetail').innerHTML='<div class="empty-state"><div class="big-icon">📬</div><div>Select an email to read it</div></div>';
-  document.getElementById('aiPanel').style.display='none';
-  document.getElementById('searchInput').value='';
-  const d=await graphGet(`/me/mailFolders/${folder}/messages?$top=50&$select=id,subject,from,receivedDateTime,bodyPreview,isRead,body,hasAttachments&$orderby=receivedDateTime desc`);
-  if(!d||!d.value)return;
-  emails=d.value;
-  nextLink=d['@odata.nextLink']||null;
-  const u=emails.filter(e=>!e.isRead).length;
-  const badge=document.getElementById('unread-badge');
-  if(badge)badge.textContent=u>0?u:'';
-  renderEmailList(emails);
-  setupScrollListener();
+function signIn() {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: REDIRECT_URI,
+    scope: SCOPES,
+    response_mode: 'query',
+    prompt: 'select_account'
+  });
+  window.location.href = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?${params}`;
 }
 
-function renderEmailList(list){
-  if(!list.length){document.getElementById('emailItems').innerHTML='<div class="loading">No emails found</div>';return;}
-  document.getElementById('emailItems').innerHTML=list.map((e,i)=>`<div class="email-item ${!e.isRead?'unread':''}" onclick="selectEmail(${emails.indexOf(e)})" id="email-item-${emails.indexOf(e)}"><span class="email-date">${formatDate(e.receivedDateTime)}</span><div class="email-sender">${escHtml(e.from?.emailAddress?.name||e.from?.emailAddress?.address||'Unknown')}${e.hasAttachments?' 📎':''}</div><div class="email-subject">${escHtml(e.subject||'(no subject)')}</div><div class="email-preview">${escHtml(e.bodyPreview||'')}</div></div>`).join('');
+function signOut() {
+  localStorage.removeItem('ms_access_token');
+  localStorage.removeItem('ms_refresh_token');
+  accessToken = null;
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
 }
 
-function setupScrollListener(){
-  const list=document.getElementById('emailList');
-  list.onscroll=async()=>{
-    if(isLoadingMore||!nextLink)return;
-    if(list.scrollTop+list.clientHeight>=list.scrollHeight-100){
-      isLoadingMore=true;
-      document.getElementById('loadMoreIndicator').style.display='block';
-      const d=await graphGet(nextLink);
-      if(d&&d.value){
-        emails=[...emails,...d.value];
-        nextLink=d['@odata.nextLink']||null;
-        renderEmailList(emails);
-      }
-      document.getElementById('loadMoreIndicator').style.display='none';
-      isLoadingMore=false;
+async function exchangeCode(code) {
+  const body = new URLSearchParams({
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    code,
+    redirect_uri: REDIRECT_URI,
+    grant_type: 'authorization_code',
+    scope: SCOPES
+  });
+  const res = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body
+  });
+  return res.json();
+}
+
+async function refreshAccessToken(refreshToken) {
+  const body = new URLSearchParams({
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    refresh_token: refreshToken,
+    grant_type: 'refresh_token',
+    scope: SCOPES
+  });
+  const res = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body
+  });
+  return res.json();
+}
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+
+  if (code) {
+    window.history.replaceState({}, '', window.location.pathname);
+    const tokens = await exchangeCode(code);
+    if (tokens.access_token) {
+      accessToken = tokens.access_token;
+      localStorage.setItem('ms_access_token', tokens.access_token);
+      if (tokens.refresh_token) localStorage.setItem('ms_refresh_token', tokens.refresh_token);
+      showApp();
+    } else {
+      alert('Auth failed: ' + (tokens.error_description || JSON.stringify(tokens)));
     }
-  };
-}
-
-function handleSearch(query){
-  clearTimeout(searchTimeout);
-  searchTimeout=setTimeout(async()=>{
-    if(!query.trim()){renderEmailList(emails);return;}
-    const q=query.toLowerCase();
-    const local=emails.filter(e=>(e.subject||'').toLowerCase().includes(q)||(e.from?.emailAddress?.name||'').toLowerCase().includes(q)||(e.bodyPreview||'').toLowerCase().includes(q));
-    if(local.length){renderEmailList(local);return;}
-    document.getElementById('emailItems').innerHTML='<div class="loading"><div class="spinner"></div><br>Searching...</div>';
-    const d=await graphGet(`/me/messages?$search="${encodeURIComponent(query)}"&$top=50&$select=id,subject,from,receivedDateTime,bodyPreview,isRead,body,hasAttachments`);
-    if(d&&d.value){
-      const merged=[...emails];
-      d.value.forEach(e=>{if(!merged.find(x=>x.id===e.id))merged.push(e);});
-      renderEmailList(d.value.length?d.value:local);
-    }
-  },400);
-}
-
-async function getRelatedEmails(subject,sender){
-  const keywords=subject.replace(/^(re:|fw:|fwd:)\s*/gi,'').trim().split(/\s+/).filter(w=>w.length>4).slice(0,3).join(' ');
-  if(!keywords)return[];
-  const d=await graphGet(`/me/messages?$search="${encodeURIComponent(keywords)}"&$top=5&$select=id,subject,from,receivedDateTime,bodyPreview`);
-  if(!d||!d.value)return[];
-  return d.value.filter(e=>e.id!==currentEmail?.id).slice(0,3);
-}
-
-async function selectEmail(i){
-  document.querySelectorAll('.email-item').forEach(el=>el.classList.remove('selected'));
-  document.getElementById(`email-item-${i}`)?.classList.add('selected');
-  currentEmail=emails[i];currentAttachments=[];
-  const e=currentEmail;
-  const bc=e.body?.contentType==='html'?`<iframe srcdoc="${escHtml(e.body.content)}" style="width:100%;border:none;min-height:200px;" onload="this.style.height=this.contentDocument.body.scrollHeight+'px'"></iframe>`:`<div style="white-space:pre-wrap;">${escHtml(e.body?.content||e.bodyPreview||'')}</div>`;
-  let attachHtml='';
-  if(e.hasAttachments){
-    const ad=await graphGet(`/me/messages/${e.id}/attachments`);
-    if(ad&&ad.value){
-      currentAttachments=ad.value.filter(a=>!a.isInline&&a.contentType!=='image/png'&&a.contentType!=='image/jpeg'&&a.contentType!=='image/gif'&&!a.name?.startsWith('Outlook-'));
-      if(currentAttachments.length){
-        attachHtml=`<div style="margin-top:12px;"><div style="font-size:12px;color:#605e5c;margin-bottom:6px;">📎 Attachments</div><div class="attachments">${currentAttachments.map(a=>`<a class="attachment-chip" href="data:${a.contentType};base64,${a.contentBytes}" download="${escHtml(a.name)}">📄 ${escHtml(a.name)} <span style="color:#a19f9d">(${Math.round((a.size||0)/1024)}KB)</span></a>`).join('')}</div></div>`;
-      }
-    }
-  }
-  document.getElementById('emailDetail').innerHTML=`<div class="detail-header"><div class="detail-subject">${escHtml(e.subject||'(no subject)')}</div><div class="detail-meta"><strong>From:</strong> ${escHtml(e.from?.emailAddress?.name||'')} &lt;${escHtml(e.from?.emailAddress?.address||'')}&gt;</div><div class="detail-meta"><strong>Date:</strong> ${new Date(e.receivedDateTime).toLocaleString()}</div>${attachHtml}<div style="margin-top:10px;display:flex;gap:8px;"><button onclick="replyTo()" style="padding:6px 14px;background:#0078d4;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">↩️ Reply</button><button onclick="forwardEmail()" style="padding:6px 14px;border:1px solid #8a8886;background:white;border-radius:4px;cursor:pointer;font-size:13px;">↪️ Forward</button></div></div><div class="detail-body">${bc}</div>`;
-  document.getElementById('aiPanel').style.display='block';
-  document.getElementById('aiResponse').classList.remove('visible');
-  document.getElementById('aiResponse').textContent='';
-}
-
-function getAttachmentText(){
-  if(!currentAttachments.length)return'';
-  let text='';
-  for(const a of currentAttachments){
-    if(!a.contentBytes)continue;
-    const mime=a.contentType||'';
-    if(mime.includes('text')||mime.includes('plain')){try{text+=`\n\n[Attachment: ${a.name}]\n${atob(a.contentBytes)}`;}catch(e){}}
-    else{text+=`\n\n[Attachment: ${a.name} — ${mime}]`;}
-  }
-  return text;
-}
-
-function replyTo(){if(!currentEmail)return;openCompose();document.getElementById('composeTo').value=currentEmail.from?.emailAddress?.address||'';document.getElementById('composeSubject').value='Re: '+(currentEmail.subject||'');}
-function forwardEmail(){if(!currentEmail)return;openCompose();document.getElementById('composeSubject').value='Fwd: '+(currentEmail.subject||'');document.getElementById('composeBody').value=`\n\n--- Forwarded ---\nFrom: ${currentEmail.from?.emailAddress?.address||''}\nSubject: ${currentEmail.subject||''}\n\n${currentEmail.body?.content?.replace(/<[^>]*>/g,'')||currentEmail.bodyPreview||''}`;}
-async function sendEmail(){const to=document.getElementById('composeTo').value.trim();const subject=document.getElementById('composeSubject').value.trim();const body=document.getElementById('composeBody').value.trim();if(!to||!subject||!body){alert('Please fill in all fields.');return;}const r=await fetch('https://graph.microsoft.com/v1.0/me/sendMail',{method:'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},body:JSON.stringify({message:{subject,body:{contentType:'Text',content:body},toRecipients:[{emailAddress:{address:to}}]}})});if(r.status===202){alert('Email sent! ✅');closeCompose();}else{const err=await r.json();alert('Failed: '+(err.error?.message||'Unknown error'));}}
-
-async function claudeAPI(prompt,tools){
-  const body={model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]};
-  if(tools)body.tools=tools;
-  const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d=await r.json();
-  if(d.error)throw new Error(JSON.stringify(d.error));
-  return d;
-}
-
-async function aiAction(type){
-  if(!currentEmail)return;
-  const emailText=currentEmail.body?.content?.replace(/<[^>]*>/g,'')||currentEmail.bodyPreview||'';
-  const attachText=getAttachmentText();
-  const fullContent=emailText+attachText;
-  const sender=currentEmail.from?.emailAddress?.name||currentEmail.from?.emailAddress?.address||'Unknown';
-  const aiResp=document.getElementById('aiResponse');
-  aiResp.classList.remove('research');
-  aiResp.textContent='⏳ Claude is thinking...';
-  aiResp.classList.add('visible');
-
-  // Get related emails for reply and research
-  let relatedContext='';
-  if(type==='reply'||type==='research'||type==='action_items'){
-    aiResp.textContent='🔎 Finding related emails...';
-    const related=await getRelatedEmails(currentEmail.subject||'',sender);
-    if(related.length){
-      relatedContext='\n\n--- Related emails for context ---\n'+related.map(e=>`From: ${e.from?.emailAddress?.name||e.from?.emailAddress?.address}\nSubject: ${e.subject}\nPreview: ${e.bodyPreview}`).join('\n\n');
-    }
-    aiResp.textContent='⏳ Claude is thinking...';
-  }
-
-  if(type==='research'){
-    try{
-      aiResp.textContent='🔍 Researching...';
-      const searchPrompt=`Based on this email, identify the most important topic or question that would benefit from web research. Search for current relevant information and provide a concise summary with key findings.\n\nEmail from: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}${relatedContext}`;
-      const d=await claudeAPI(searchPrompt,[{type:'web_search_20250305',name:'web_search'}]);
-      let result='';
-      for(const block of d.content){if(block.type==='text')result+=block.text;}
-      aiResp.textContent=result||'No research results found.';
-      aiResp.classList.add('research');
-    }catch(err){aiResp.textContent='Error: '+err.message;}
     return;
   }
 
-  const prompts={
-    summarize:`Summarize this email${attachText?' and its attachments':''} in 2-3 sentences, plain text only:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}`,
-    reply:`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a reply as Sam — short, direct, no fluff. RULES: max 2-3 sentences, no bullet points, no "Dear X", no "I hope this finds you well", no placeholder text, start directly with the response, plain text only.${attachText?' The email has attachments — factor them in if relevant.':''}${relatedContext?' Use the related emails below for additional context if helpful.':''} End with EXACTLY this signature and nothing else:${SIG}\n\nEmail to reply to:\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}${relatedContext}`,
-    action_items:`List action items as a short numbered list, plain text:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${fullContent}${relatedContext}`,
-    tone:`Analyze the tone in 1-2 sentences:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,
-    translate:`Translate to English if not already, else Spanish:\n\n${emailText}`
-  };
+  const stored = localStorage.getItem('ms_access_token');
+  const refresh = localStorage.getItem('ms_refresh_token');
 
-  try{
-    const d=await claudeAPI(prompts[type]);
-    const text=d.content?.[0]?.text||'No response.';
-    aiResp.textContent=text;
-    if(type==='reply'&&confirm('Open draft in compose?')){
-      openCompose();
-      document.getElementById('composeTo').value=currentEmail.from?.emailAddress?.address||'';
-      document.getElementById('composeSubject').value='Re: '+(currentEmail.subject||'');
-      document.getElementById('composeBody').value=text;
+  if (stored) {
+    accessToken = stored;
+    showApp();
+  } else if (refresh) {
+    const tokens = await refreshAccessToken(refresh);
+    if (tokens.access_token) {
+      accessToken = tokens.access_token;
+      localStorage.setItem('ms_access_token', tokens.access_token);
+      showApp();
     }
-  }catch(err){aiResp.textContent='Error: '+err.message;}
+  }
 }
 
-async function aiCompose(){const to=document.getElementById('composeTo').value;const subject=document.getElementById('composeSubject').value;const partial=document.getElementById('composeBody').value;const prompt=`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a short direct email as Sam. RULES: max 2-3 sentences, no bullet points, no formal openers, no placeholder text, plain text only. End with EXACTLY this signature and nothing else:${SIG}\n\nTo: ${to||'someone'}\nSubject: ${subject||'not specified'}\n${partial?'Context:\n'+partial:''}`;const aiResp=document.getElementById('composeAiResponse');aiResp.textContent='⏳ Drafting...';aiResp.classList.add('visible');try{const d=await claudeAPI(prompt);const text=d.content?.[0]?.text||'';aiResp.textContent=text;if(confirm('Use this draft?'))document.getElementById('composeBody').value=text;}catch(err){aiResp.textContent='Error: '+err.message;}}
-function openCompose(){document.getElementById('composeModal').classList.add('open');}
-function closeCompose(){document.getElementById('composeModal').classList.remove('open');document.getElementById('composeTo').value='';document.getElementById('composeSubject').value='';document.getElementById('composeBody').value='';document.getElementById('composeAiResponse').classList.remove('visible');}
-function formatDate(dt){const d=new Date(dt),n=new Date();return d.toDateString()===n.toDateString()?d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString([],{month:'short',day:'numeric'});}
-function escHtml(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'flex';
+  await loadUser();
+  await loadEmails('inbox');
+}
+
+// ─── GRAPH API ───────────────────────────────────────────────────────────────
+
+async function graphGet(path) {
+  const res = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (res.status === 401) {
+    const refresh = localStorage.getItem('ms_refresh_token');
+    if (refresh) {
+      const tokens = await refreshAccessToken(refresh);
+      if (tokens.access_token) {
+        accessToken = tokens.access_token;
+        localStorage.setItem('ms_access_token', tokens.access_token);
+        return graphGet(path);
+      }
+    }
+    signOut();
+    return null;
+  }
+  return res.json();
+}
+
+async function loadUser() {
+  const data = await graphGet('/me');
+  if (data) document.getElementById('userEmail').textContent = data.mail || data.userPrincipalName || '';
+}
+
+async function loadEmails(folder = 'inbox') {
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + (folder === 'sentitems' ? 'sent' : folder === 'deleteditems' ? 'deleted' : folder));
+  if (btn) btn.classList.add('active');
+
+  document.getElementById('emailList').innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading...</div>';
+  document.getElementById('emailDetail').innerHTML = '<div class="empty-state"><div class="big-icon">📬</div><div>Select an email to read it</div></div>';
+  document.getElementById('aiPanel').style.display = 'none';
+
+  const data = await graphGet(`/me/mailFolders/${folder}/messages?$top=30&$select=id,subject,from,receivedDateTime,bodyPreview,isRead,body&$orderby=receivedDateTime desc`);
+  if (!data || !data.value) return;
+
+  emails = data.value;
+
+  // Count unread
+  const unread = emails.filter(e => !e.isRead).length;
+  const badge = document.getElementById('unread-badge');
+  if (badge) badge.textContent = unread > 0 ? unread : '';
+
+  if (emails.length === 0) {
+    document.getElementById('emailList').innerHTML = '<div class="loading">No emails found</div>';
+    return;
+  }
+
+  document.getElementById('emailList').innerHTML = emails.map((e, i) => `
+    <div class="email-item ${!e.isRead ? 'unread' : ''}" onclick="selectEmail(${i})" id="email-item-${i}">
+      <span class="email-date">${formatDate(e.receivedDateTime)}</span>
+      <div class="email-sender">${escHtml(e.from?.emailAddress?.name || e.from?.emailAddress?.address || 'Unknown')}</div>
+      <div class="email-subject">${escHtml(e.subject || '(no subject)')}</div>
+      <div class="email-preview">${escHtml(e.bodyPreview || '')}</div>
+    </div>
+  `).join('');
+}
+
+function selectEmail(index) {
+  document.querySelectorAll('.email-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`email-item-${index}`)?.classList.add('selected');
+
+  currentEmail = emails[index];
+  const e = currentEmail;
+
+  const bodyContent = e.body?.contentType === 'html'
+    ? `<iframe srcdoc="${escHtml(e.body.content)}" style="width:100%;border:none;min-height:300px;" onload="this.style.height=this.contentDocument.body.scrollHeight+'px'"></iframe>`
+    : `<div style="white-space:pre-wrap;">${escHtml(e.body?.content || e.bodyPreview || '')}</div>`;
+
+  document.getElementById('emailDetail').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-subject">${escHtml(e.subject || '(no subject)')}</div>
+      <div class="detail-meta"><strong>From:</strong> ${escHtml(e.from?.emailAddress?.name || '')} &lt;${escHtml(e.from?.emailAddress?.address || '')}&gt;</div>
+      <div class="detail-meta"><strong>Date:</strong> ${new Date(e.receivedDateTime).toLocaleString()}</div>
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button onclick="replyTo()" style="padding:6px 14px; background:#0078d4; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px;">↩️ Reply</button>
+        <button onclick="forwardEmail()" style="padding:6px 14px; border:1px solid #8a8886; background:white; border-radius:4px; cursor:pointer; font-size:13px;">↪️ Forward</button>
+      </div>
+    </div>
+    <div class="detail-body">${bodyContent}</div>
+  `;
+
+  document.getElementById('aiPanel').style.display = 'block';
+  document.getElementById('aiResponse').classList.remove('visible');
+  document.getElementById('aiResponse').textContent = '';
+}
+
+function replyTo() {
+  if (!currentEmail) return;
+  openCompose();
+  document.getElementById('composeTo').value = currentEmail.from?.emailAddress?.address || '';
+  document.getElementById('composeSubject').value = 'Re: ' + (currentEmail.subject || '');
+}
+
+function forwardEmail() {
+  if (!currentEmail) return;
+  openCompose();
+  document.getElementById('composeSubject').value = 'Fwd: ' + (currentEmail.subject || '');
+  document.getElementById('composeBody').value = `\n\n--- Forwarded message ---\nFrom: ${currentEmail.from?.emailAddress?.address || ''}\nSubject: ${currentEmail.subject || ''}\n\n${currentEmail.body?.content?.replace(/<[^>]*>/g, '') || currentEmail.bodyPreview || ''}`;
+}
+
+async function sendEmail() {
+  const to = document.getElementById('composeTo').value.trim();
+  const subject = document.getElementById('composeSubject').value.trim();
+  const body = document.getElementById('composeBody').value.trim();
+
+  if (!to || !subject || !body) { alert('Please fill in all fields.'); return; }
+
+  const payload = {
+    message: {
+      subject,
+      body: { contentType: 'Text', content: body },
+      toRecipients: [{ emailAddress: { address: to } }]
+    }
+  };
+
+  const res = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (res.status === 202) {
+    alert('Email sent successfully! ✅');
+    closeCompose();
+  } else {
+    const err = await res.json();
+    alert('Failed to send: ' + (err.error?.message || 'Unknown error'));
+  }
+}
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+
+async function aiAction(type) {
+  if (!currentEmail) return;
+  const emailText = currentEmail.body?.content?.replace(/<[^>]*>/g, '') || currentEmail.bodyPreview || '';
+  const sender = currentEmail.from?.emailAddress?.name || currentEmail.from?.emailAddress?.address || 'Unknown';
+
+  const prompts = {
+    summarize: `Summarize this email in 3-4 sentences:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,
+    reply: `Draft a professional reply to this email:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}\n\nKeep it concise and professional.`,
+    action_items: `List the action items from this email as a numbered list:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,
+    tone: `Analyze the tone and sentiment of this email in 2-3 sentences:\n\nFrom: ${sender}\nSubject: ${currentEmail.subject}\n\n${emailText}`,
+    translate: `Translate this email to English if it's not already in English, otherwise translate it to Spanish:\n\n${emailText}`
+  };
+
+  const aiResp = document.getElementById('aiResponse');
+  aiResp.textContent = '⏳ Claude is thinking...';
+  aiResp.classList.add('visible');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompts[type] }]
+      })
+    });
+    const data = await res.json();
+    aiResp.textContent = data.content?.[0]?.text || 'No response.';
+
+    if (type === 'reply') {
+      const useReply = confirm('Would you like to open this draft in the compose window?');
+      if (useReply) {
+        openCompose();
+        document.getElementById('composeTo').value = currentEmail.from?.emailAddress?.address || '';
+        document.getElementById('composeSubject').value = 'Re: ' + (currentEmail.subject || '');
+        document.getElementById('composeBody').value = data.content?.[0]?.text || '';
+      }
+    }
+  } catch (err) {
+    aiResp.textContent = 'Error calling Claude: ' + err.message;
+  }
+}
+
+async function aiCompose() {
+  const to = document.getElementById('composeTo').value;
+  const subject = document.getElementById('composeSubject').value;
+  const partial = document.getElementById('composeBody').value;
+
+  const prompt = `Help me write a professional email.\nTo: ${to || 'someone'}\nSubject: ${subject || 'not specified'}\n${partial ? 'Draft so far:\n' + partial : 'Please write a complete email.'}`;
+
+  const aiResp = document.getElementById('composeAiResponse');
+  aiResp.textContent = '⏳ Claude is drafting...';
+  aiResp.classList.add('visible');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    aiResp.textContent = text;
+
+    const useIt = confirm('Use this draft?');
+    if (useIt) document.getElementById('composeBody').value = text;
+  } catch (err) {
+    aiResp.textContent = 'Error: ' + err.message;
+  }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+
+function openCompose() { document.getElementById('composeModal').classList.add('open'); }
+function closeCompose() {
+  document.getElementById('composeModal').classList.remove('open');
+  document.getElementById('composeTo').value = '';
+  document.getElementById('composeSubject').value = '';
+  document.getElementById('composeBody').value = '';
+  document.getElementById('composeAiResponse').classList.remove('visible');
+}
+
+function formatDate(dt) {
+  const d = new Date(dt);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString([], {month:'short', day:'numeric'});
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 init();
 </script>
 </body>

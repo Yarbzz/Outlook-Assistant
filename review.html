@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ADS Deliverable Review</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e8eaf0;min-height:100vh;display:flex;flex-direction:column}
+.nav{background:#181c27;border-bottom:1px solid #2a3047;padding:0 20px;display:flex;align-items:stretch;height:50px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;padding-right:20px;border-right:1px solid #2a3047;margin-right:16px}
+.logo-dot{width:8px;height:8px;background:#3b82f6;border-radius:50%}
+.nav-links{display:flex;align-items:center;gap:2px}
+.nav-link{padding:0 12px;height:100%;display:flex;align-items:center;font-size:13px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;text-decoration:none;transition:all .15s}
+.nav-link:hover{color:#e8eaf0}.nav-link.active{color:#3b82f6;border-bottom-color:#3b82f6}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.ss-badge{font-size:11px;padding:3px 10px;border-radius:10px;border:1px solid #2a3047;color:#6b7280}
+.ss-badge.on{border-color:rgba(16,185,129,.4);color:#10b981;background:rgba(16,185,129,.08)}
+.body{display:flex;flex:1;overflow:hidden}
+.left{width:360px;border-right:1px solid #2a3047;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;background:#181c27}
+.lhead{padding:14px 16px;border-bottom:1px solid #2a3047;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ltitle{font-size:13px;font-weight:600}
+.lbody{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.rtabs{display:flex;background:#181c27;border-bottom:1px solid #2a3047;flex-shrink:0;padding:0 16px}
+.rtab{padding:12px 14px;font-size:12px;font-weight:500;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.rtab:hover{color:#e8eaf0}.rtab.active{color:#3b82f6;border-bottom-color:#3b82f6}
+.rbody{flex:1;overflow-y:auto;padding:20px}
+.btn{padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:#3b82f6;color:white}.btn-primary:hover:not(:disabled){background:#2563eb}
+.btn-primary:disabled{background:#1e3a5f;color:#4b6d8f;cursor:not-allowed}
+.btn-secondary{background:#1e2334;color:#e8eaf0;border:1px solid #2a3047}.btn-secondary:hover{border-color:#3b82f6;color:#3b82f6}
+.btn-ghost{background:transparent;color:#6b7280;border:1px solid #2a3047}.btn-ghost:hover{color:#e8eaf0}
+.btn-green{background:#10b981;color:white}.btn-green:hover{background:#059669}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-block{width:100%;justify-content:center}
+.step-box{background:#1e2334;border:1px solid #2a3047;border-radius:8px;padding:14px}
+.step-label{font-size:11px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field select,.field textarea{padding:8px 10px;background:#181c27;border:1px solid #2a3047;border-radius:6px;color:#e8eaf0;font-size:13px;font-family:inherit;transition:border-color .15s;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#3b82f6}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.drop-zone{border:2px dashed #2a3047;border-radius:8px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.over{border-color:#3b82f6;background:rgba(59,130,246,.04)}
+.drop-icon{font-size:26px;margin-bottom:5px}
+.drop-hint{font-size:12px;color:#6b7280;line-height:1.5}
+.drop-hint strong{color:#9ca3af;display:block;font-size:13px;margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:3px 10px;background:#181c27;border:1px solid #2a3047;border-radius:20px;font-size:11px;display:flex;align-items:center;gap:5px;color:#9ca3af}
+.chip-x{background:none;border:none;color:#6b7280;cursor:pointer;font-size:13px;line-height:1;padding:0}.chip-x:hover{color:#ef4444}
+.or-div{display:flex;align-items:center;gap:8px;color:#374151;font-size:11px}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:#2a3047}
+.proj-list{max-height:190px;overflow-y:auto;border:1px solid #2a3047;border-radius:6px;background:#181c27;margin-top:6px}
+.proj-item{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #2a3047;transition:background .1s;display:flex;align-items:center;justify-content:space-between}
+.proj-item:last-child{border:none}.proj-item:hover{background:#1e2334}.proj-item.sel{background:rgba(59,130,246,.1);color:#3b82f6}
+.proj-stage{font-size:10px;color:#6b7280;padding:2px 6px;background:#0f1117;border-radius:4px;white-space:nowrap;margin-left:8px}
+.sel-badge{padding:8px 10px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:6px;font-size:12px;margin-top:6px}
+.rcard{background:#181c27;border:1px solid #2a3047;border-radius:8px;padding:16px;margin-bottom:12px}
+.rcard-title{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rcard-body{font-size:13px;line-height:1.7;color:#d1d5db;white-space:pre-wrap}
+.issue{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #1e2334;font-size:13px;line-height:1.5}
+.issue:last-child{border:none;padding-bottom:0}
+.idot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.d-red{background:#ef4444}.d-orange{background:#f59e0b}.d-blue{background:#3b82f6}.d-green{background:#10b981}
+.ilabel{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:4px;text-transform:uppercase;letter-spacing:.3px}
+.l-red{background:rgba(239,68,68,.15);color:#ef4444}.l-orange{background:rgba(245,158,11,.15);color:#f59e0b}
+.l-blue{background:rgba(59,130,246,.15);color:#3b82f6}.l-green{background:rgba(16,185,129,.15);color:#10b981}
+.itext{color:#6b7280;font-size:12px;margin-top:2px;line-height:1.5}
+.iaction{margin-top:4px;font-size:12px;color:#3b82f6}
+.step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #1e2334;font-size:13px;line-height:1.5}
+.step:last-child{border:none}
+.step-num{width:24px;height:24px;border-radius:50%;background:#3b82f6;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-who{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;text-transform:uppercase}
+.ws{background:rgba(59,130,246,.15);color:#3b82f6}.wc{background:rgba(139,92,246,.15);color:#8b5cf6}
+.wb{background:rgba(245,158,11,.15);color:#f59e0b}.wg{background:rgba(16,185,129,.15);color:#10b981}
+.step-detail{font-size:12px;color:#6b7280;margin-top:3px}
+.urgent{font-size:10px;color:#ef4444;margin-left:6px;font-weight:700}
+.ss-tbl{width:100%;border-collapse:collapse}
+.ss-tbl tr{border-bottom:1px solid #1e2334}
+.ss-tbl tr:last-child{border:none}
+.ss-tbl td{padding:7px 8px;font-size:12px;vertical-align:middle}
+.ss-tbl td:first-child{color:#6b7280;width:160px;white-space:nowrap;font-size:11px}
+.ssi{width:100%;padding:5px 8px;background:#1e2334;border:1px solid #2a3047;border-radius:4px;color:#e8eaf0;font-size:12px;font-family:inherit}
+.ssi:focus{outline:none;border-color:#3b82f6}.ssi.ai{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.04)}
+.sbar{padding:10px 14px;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.sb-blue{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:#3b82f6}
+.sb-green{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:#10b981}
+.sb-red{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444}
+.sb-orange{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#f59e0b}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;opacity:.7}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#4b5563;gap:10px;text-align:center;padding:24px}
+.empty-icon{font-size:42px}.empty-title{font-size:14px;font-weight:600;color:#6b7280}.empty-sub{font-size:12px;line-height:1.6;max-width:280px}
+.toast{position:fixed;bottom:20px;right:20px;background:#181c27;border:1px solid #2a3047;border-radius:8px;padding:10px 16px;font-size:13px;z-index:999;display:none;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.toast.on{display:flex}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#374151;border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="logo"><div class="logo-dot"></div>ADS Review</div>
+  <div class="nav-links">
+    <a class="nav-link active" href="review.html">📋 Review</a>
+    <a class="nav-link" href="ads-hub.html">👥 Vendors</a>
+    <a class="nav-link" href="index.html">✉️ Email</a>
+  </div>
+  <div class="nav-right">
+    <span class="ss-badge" id="ssBadge">Smartsheet ⚪</span>
+    <button class="btn btn-ghost btn-sm" onclick="connectSS()">Connect</button>
+  </div>
+</div>
+
+<div class="body">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="lhead">
+      <span class="ltitle">📎 Input</span>
+      <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="lbody">
+
+      <!-- Step 1 -->
+      <div class="step-box">
+        <div class="step-label">Step 1 — Project</div>
+        <div class="field">
+          <label>Search your projects</label>
+          <input id="projSearch" placeholder="Type project name..." oninput="searchProjects()"/>
+          <div class="proj-list" id="projList" style="display:none"></div>
+        </div>
+        <div id="selBadge" style="display:none" class="sel-badge">
+          <div style="font-weight:600;color:#3b82f6" id="selName"></div>
+          <div style="color:#6b7280;margin-top:2px;font-size:11px" id="selDetails"></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:11px;color:#4b5563;margin-bottom:4px">— or type a new project —</div>
+          <input id="manualName" placeholder="New project name..." style="width:100%;padding:7px 10px;background:#181c27;border:1px solid #2a3047;border-radius:6px;color:#e8eaf0;font-size:12px;font-family:inherit"/>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-box">
+        <div class="step-label">Step 2 — Deliverable Type</div>
+        <div class="field">
+          <select id="delivType">
+            <option value="civil">Civil Engineering Plans</option>
+            <option value="geotech">Geotechnical Report</option>
+            <option value="phase1">Phase I Environmental (ESA)</option>
+            <option value="phase2">Phase II Environmental</option>
+            <option value="survey">Survey / ALTA</option>
+            <option value="arch">Architectural / CD Plans</option>
+            <option value="permit">Permit Set / Review Comments</option>
+            <option value="traffic">Traffic Study / TIA</option>
+            <option value="landscape">Landscape Plans</option>
+            <option value="structural">Structural Plans</option>
+            <option value="bid">Bid / Proposal</option>
+            <option value="email">Email / Correspondence</option>
+            <option value="contract">Contract / Agreement</option>
+            <option value="other">Other Document</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-box">
+        <div class="step-label">Step 3 — Content</div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fi').click()" ondragover="oDragOver(event)" ondragleave="oDragLeave()" ondrop="oDrop(event)">
+          <div class="drop-icon">📄</div>
+          <div class="drop-hint"><strong>Drop files or click to upload</strong>PDF · Images · Word · TXT</div>
+        </div>
+        <input type="file" id="fi" multiple accept=".pdf,.png,.jpg,.jpeg,.docx,.txt" style="display:none" onchange="addFiles(this.files)"/>
+        <div class="chips" id="chips" style="margin-top:8px"></div>
+        <div class="or-div" style="margin:10px 0">or paste text below</div>
+        <div class="field">
+          <textarea id="paste" placeholder="Paste email, permit comments, document text, review notes..."></textarea>
+        </div>
+      </div>
+
+      <!-- Go -->
+      <button class="btn btn-primary btn-block" id="reviewBtn" onclick="runReview()" style="padding:11px;font-size:14px">
+        ✨ Run AI Review + Update Smartsheet
+      </button>
+
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="rtabs">
+      <div class="rtab active" id="rt-review" onclick="switchTab('review')">🔍 AI Review</div>
+      <div class="rtab" id="rt-steps" onclick="switchTab('steps')">→ Next Steps</div>
+      <div class="rtab" id="rt-ss" onclick="switchTab('ss')">📊 Smartsheet Update</div>
+    </div>
+    <div class="rbody" id="rbody">
+      <div class="empty">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Ready to review</div>
+        <div class="empty-sub">Select a project, pick deliverable type, upload a file or paste content, then click <strong>Run AI Review</strong>.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PROXY='https://anthropic-proxy.yarbs7sam.workers.dev';
+const SS_SHEET_ID='8673518468157316';
+const STAGES=['01 Site ID','02 SIR','03 LOI','04 PSA','05 Under Contract / Dev','06 CD Kickoff','07 Plans Submitted','08 Plans Approved','09 Lease','10 Permit Submitted','11 Permit Resubmittal','12 LL Permits','13 Bids Out','14 Bid Award','15 Construction','16 TCO/CO','17 Complete'];
+
+let files=[],result=null,tab='review',selProj=null,allProjs=[],ssToken=null,cols={};
+
+// ── SMARTSHEET ──
+function connectSS(){
+  const t=prompt('Paste your Smartsheet API token\n(Smartsheet → Account → Personal Settings → API Access → Generate Token):');
+  if(!t?.trim())return;
+  ssToken=t.trim();localStorage.setItem('ss_token',ssToken);
+  setBadge(true);loadProjects();
+}
+function getToken(){if(!ssToken)ssToken=localStorage.getItem('ss_token');return ssToken;}
+function setBadge(on){const b=document.getElementById('ssBadge');b.textContent='Smartsheet '+(on?'🟢':'⚪');b.className='ss-badge'+(on?' on':'');}
+
+async function loadProjects(){
+  const token=getToken();if(!token)return;setBadge(true);
+  try{
+    const r=await fetch(`https://api.smartsheet.com/2.0/sheets/${SS_SHEET_ID}`,{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();if(!r.ok)throw new Error(d.message);
+    d.columns.forEach(c=>cols[c.title]=c.id);
+    allProjs=(d.rows||[]).filter(row=>{
+      const p=gv(row,'Project'),id=gv(row,'Project ID');
+      return p&&!p.startsWith('INSTRUCTIONS')&&p!=='Insert rows above here'&&p!=='Legend'&&id&&!isNaN(parseFloat(id));
+    }).map(row=>({
+      _id:row.id,
+      name:gv(row,'Project'),projId:gv(row,'Project ID'),status:gv(row,'Status'),
+      stage:gv(row,'Stage'),address:gv(row,'Official Project Address'),
+      storeNum:gv(row,'Store #'),gc:gv(row,'GC'),
+      permitSub:gv(row,'Permit Submittal'),permitReady:gv(row,'Permit Ready'),
+      bidsOut:gv(row,'Bids Out'),bidDate:gv(row,'Bid Date'),
+      conStart:gv(row,'Construction Start'),tco:gv(row,'TCO/CO'),
+      plansSubmitted:gv(row,'Plans Submitted to Tenant'),cdKickoff:gv(row,'CD Kickoff'),
+      notes:gv(row,'Project Notes'),
+    }));
+    toast('✅ '+allProjs.length+' projects loaded');
+  }catch(e){toast('❌ '+e.message);}
+}
+function gv(row,col){const id=cols[col];const c=row.cells?.find(x=>x.columnId===id);return c?.displayValue||c?.value||'';}
+
+// ── PROJECT SEARCH ──
+function searchProjects(){
+  const q=document.getElementById('projSearch').value.toLowerCase();
+  const list=document.getElementById('projList');
+  if(!q){list.style.display='none';return;}
+  if(!allProjs.length){list.style.display='block';list.innerHTML='<div class="proj-item" style="color:#6b7280">Connect Smartsheet first to search</div>';return;}
+  const m=allProjs.filter(p=>p.name.toLowerCase().includes(q)||(p.address||'').toLowerCase().includes(q)||(p.storeNum||'').toLowerCase().includes(q)).slice(0,8);
+  if(!m.length){list.style.display='block';list.innerHTML='<div class="proj-item" style="color:#6b7280">No match — use manual name below</div>';return;}
+  list.style.display='block';
+  list.innerHTML=m.map(p=>`<div class="proj-item ${selProj?._id===p._id?'sel':''}" onclick="selectProj('${p._id}')">
+    <div><div style="font-weight:500">${esc(p.name)}</div><div style="font-size:10px;color:#6b7280">${esc(p.address||'')}</div></div>
+    <span class="proj-stage">${esc(p.stage||p.status||'')}</span></div>`).join('');
+}
+function selectProj(id){
+  selProj=allProjs.find(p=>p._id===id);if(!selProj)return;
+  document.getElementById('projList').style.display='none';
+  document.getElementById('projSearch').value=selProj.name;
+  document.getElementById('selBadge').style.display='block';
+  document.getElementById('selName').textContent=selProj.name;
+  document.getElementById('selDetails').textContent=[selProj.stage,selProj.address,selProj.storeNum].filter(Boolean).join(' · ');
+  document.getElementById('manualName').value='';
+}
+
+// ── FILES ──
+function oDragOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('over');}
+function oDragLeave(){document.getElementById('dropZone').classList.remove('over');}
+function oDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('over');addFiles(e.dataTransfer.files);}
+function addFiles(list){[...list].forEach(f=>{if(!files.find(x=>x.name===f.name))files.push(f);});renderChips();}
+function removeFile(i){files.splice(i,1);renderChips();}
+function renderChips(){
+  const icons={pdf:'📄',png:'🖼️',jpg:'🖼️',jpeg:'🖼️',docx:'📝',txt:'📃'};
+  document.getElementById('chips').innerHTML=files.map((f,i)=>`<div class="chip">${icons[f.name.split('.').pop().toLowerCase()]||'📎'} ${f.name.length>26?f.name.slice(0,26)+'…':f.name}<button class="chip-x" onclick="removeFile(${i})">×</button></div>`).join('');
+}
+async function toB64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});}
+function mtype(f){const e=f.name.split('.').pop().toLowerCase();return{pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg'}[e]||null;}
+
+// ── REVIEW ──
+async function runReview(){
+  const projName=selProj?.name||document.getElementById('manualName').value.trim();
+  if(!projName){alert('Select a project or type a project name.');return;}
+  const paste=document.getElementById('paste').value.trim();
+  if(!files.length&&!paste){alert('Upload a file or paste content to review.');return;}
+
+  const btn=document.getElementById('reviewBtn');
+  btn.disabled=true;btn.textContent='⏳ Analyzing...';
+  switchTab('review');
+  setBody(`<div class="sbar sb-blue"><div class="spin"></div> Claude is reading and analyzing the deliverable — usually 20–40 seconds...</div>`);
+
+  try{
+    const content=[];
+    if(paste)content.push({type:'text',text:'=== PASTED CONTENT ===\n'+paste});
+    for(const f of files){
+      const mt=mtype(f);
+      if(mt==='application/pdf'){content.push({type:'document',source:{type:'base64',media_type:mt,data:await toB64(f)}});}
+      else if(mt){content.push({type:'image',source:{type:'base64',media_type:mt,data:await toB64(f)}});}
+      else if(f.name.endsWith('.txt')){content.push({type:'text',text:'=== FILE: '+f.name+' ===\n'+await f.text()});}
+    }
+    content.push({type:'text',text:buildPrompt(projName)});
+
+    const resp=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content}]})});
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+
+    const raw=data.content?.[0]?.text||'';
+    const m=raw.match(/```json\s*([\s\S]*?)\s*```/)||raw.match(/(\{[\s\S]*\})/);
+    result=JSON.parse(m?m[1]:raw);
+    renderCurrent();
+  }catch(e){setBody(`<div class="sbar sb-red">❌ Error: ${esc(e.message)}</div>`);}
+
+  btn.disabled=false;btn.textContent='✨ Run AI Review + Update Smartsheet';
+}
+
+function buildPrompt(projName){
+  const type=document.getElementById('delivType').value;
+  const names={civil:'Civil Engineering Plans',geotech:'Geotechnical Report',phase1:'Phase I Environmental ESA',phase2:'Phase II Environmental Report',survey:'ALTA / Boundary Survey',arch:'Architectural Construction Documents',permit:'Permit Set or Permit Review Comments',traffic:'Traffic Impact Analysis',landscape:'Landscape Plans',structural:'Structural Engineering Plans',bid:'Bid or Proposal',email:'Email or Correspondence',contract:'Contract or Agreement',other:'Document'};
+  const typeName=names[type]||'Document';
+  const checks={
+    civil:'ADA compliance (slopes ≤8.33%, cross-slopes ≤2%, ramp widths, detectable warnings), parking count and ADA stall ratio, fire lane width (20-26ft clear), setbacks from property lines, grading and drainage (positive drainage away from building, detention if required), utility conflicts, accessible route from parking to entrance, curb radii for delivery trucks, easements shown and respected',
+    geotech:'bearing capacity value stated (psf), soil classification (USCS), shrink/swell potential, recommended foundation type (slab-on-grade vs pier-and-beam), subgrade preparation, compaction specs (percentage and test frequency), groundwater depth, pavement design section, any areas of environmental concern, liquefaction potential if applicable',
+    phase1:'RECs (Recognized Environmental Conditions) identified, historical uses (gas stations, dry cleaners, industrial), adjacent property concerns, vapor encroachment conditions (VECs), regulatory database review completed (ASTM E1527-21 databases), site reconnaissance completed, interviews conducted, recommendations for Phase II, opinions of environmental professional, any data gaps',
+    survey:'easements (utility, drainage, access, ingress/egress), encroachments from or onto adjacent parcels, flood zone designation (FEMA FIRM panel and date), legal description matches title commitment, access to public road confirmed, setback lines shown, title exceptions addressed, utilities located, Table A items requested all completed, note any issues with square footage vs title',
+    permit:'list every comment by number, which discipline issued it (civil, architectural, fire, ADA, health department, etc.), whether it requires a design change or just a clarification/response letter, flag any that could extend review timeline or require re-engineering, note any fees or inspections triggered',
+    bid:'scope covers full project (sitework, building, MEP, finishes), exclusions clearly listed, allowances identified with amounts, schedule meets project requirements, bond type required, insurance limits stated, payment terms, retainage percentage, any missing scope vs the RFP or construction documents',
+    email:'decisions made, action items assigned with due dates, any commitments made by consultants, any issues raised that need Sam\'s response, deadlines mentioned, approvals given or withheld',
+    contract:'key dates and milestones, compensation and payment schedule, scope of services, termination clauses, liability and indemnification, insurance requirements, change order process, dispute resolution',
+    other:'completeness, accuracy, key information, items requiring follow-up, important dates or deadlines'
+  };
+  const chk=checks[type]||checks.other;
+  const projCtx=selProj?`\nCurrent Smartsheet status:\n- Stage: ${selProj.stage}\n- Status: ${selProj.status}\n- Address: ${selProj.address}\n- Store #: ${selProj.storeNum}\n- GC: ${selProj.gc||'TBD'}\n- CD Kickoff: ${selProj.cdKickoff}\n- Plans Submitted: ${selProj.plansSubmitted}\n- Permit Submittal: ${selProj.permitSub}\n- Permit Ready: ${selProj.permitReady}\n- Bids Out: ${selProj.bidsOut}\n- Bid Date: ${selProj.bidDate}\n- Construction Start: ${selProj.conStart}\n- TCO/CO: ${selProj.tco}\n- Notes: ${selProj.notes}`:'';
+
+  return `You are reviewing a ${typeName} for ADS (Accelerated Development Services), the landlord/developer building a Dutch Bros Coffee drive-thru for project: "${projName}".${projCtx}
+
+Sam Yarbrough is the Construction Manager. Review ALL provided content thoroughly.
+
+Specifically check for: ${chk}
+
+Respond with ONLY this JSON block, no other text:
+\`\`\`json
+{
+  "summary": "3-4 sentences covering what this document is, its overall quality/completeness, and the single most important thing Sam needs to know",
+  "issues": [
+    {
+      "severity": "critical",
+      "title": "Short title",
+      "detail": "Specific detail with page/sheet numbers, spec sections, or exact language from the document",
+      "action": "Exactly what Sam needs to do to resolve this"
+    }
+  ],
+  "nextSteps": [
+    {
+      "who": "Sam",
+      "action": "Specific action",
+      "detail": "Who to contact, what to say, or what deadline applies",
+      "urgent": false
+    }
+  ],
+  "smartsheetUpdates": {
+    "stage": "${selProj?.stage||''}",
+    "notes": "Concise summary of key findings to log: issues flagged, decisions made, dates confirmed in document",
+    "gc": "${selProj?.gc||''}",
+    "permitSub": "${selProj?.permitSub||''}",
+    "permitReady": "${selProj?.permitReady||''}",
+    "bidsOut": "${selProj?.bidsOut||''}",
+    "bidDate": "${selProj?.bidDate||''}",
+    "conStart": "${selProj?.conStart||''}",
+    "tco": "${selProj?.tco||''}",
+    "plansSubmitted": "${selProj?.plansSubmitted||''}"
+  }
+}
+\`\`\`
+Severity: critical=will cause rejection/delay/cost, warning=needs attention before proceeding, info=notable/recommend, ok=confirmed complete.
+For nextSteps who: Sam=ADS action, Consultant=engineering firm action, Dutch Bros=tenant action, GC=contractor action.`;
+}
+
+// ── TABS ──
+function switchTab(t){
+  tab=t;
+  ['review','steps','ss'].forEach(x=>document.getElementById('rt-'+x).classList.remove('active'));
+  document.getElementById('rt-'+t).classList.add('active');
+  if(result)renderCurrent();
+}
+function renderCurrent(){if(tab==='review')renderReview();else if(tab==='steps')renderSteps();else renderSS();}
+
+function renderReview(){
+  const d=result;
+  const crits=(d.issues||[]).filter(i=>i.severity==='critical').length;
+  const warns=(d.issues||[]).filter(i=>i.severity==='warning').length;
+  const dotC=s=>({critical:'d-red',warning:'d-orange',info:'d-blue',ok:'d-green'}[s]||'d-orange');
+  const lblC=s=>({critical:'l-red',warning:'l-orange',info:'l-blue',ok:'l-green'}[s]||'l-orange');
+  const lblT=s=>({critical:'Critical',warning:'Warning',info:'Info',ok:'OK'}[s]||s);
+  setBody(`
+    <div class="sbar ${crits>0?'sb-red':warns>0?'sb-orange':'sb-green'}">
+      ${crits>0?'⚠️':warns>0?'🟡':'✅'} <strong>${crits} critical</strong> · ${warns} warnings · ${(d.issues||[]).filter(i=>i.severity==='info').length} info · ${(d.issues||[]).filter(i=>i.severity==='ok').length} OK
+      <button onclick="switchTab('steps')" style="margin-left:auto;padding:3px 10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#e8eaf0;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit">→ Next Steps</button>
+    </div>
+    <div class="rcard"><div class="rcard-title">📋 Summary</div><div class="rcard-body">${esc(d.summary||'')}</div></div>
+    ${(d.issues||[]).length?`<div class="rcard"><div class="rcard-title">🔍 Issues (${(d.issues||[]).length})</div>
+    ${(d.issues||[]).map(i=>`<div class="issue"><div class="idot ${dotC(i.severity)}" style="margin-top:6px"></div><div style="flex:1">
+      <div style="font-weight:500;margin-bottom:2px"><span class="ilabel ${lblC(i.severity)}">${lblT(i.severity)}</span>${esc(i.title)}</div>
+      <div class="itext">${esc(i.detail)}</div>
+      ${i.action?`<div class="iaction">→ ${esc(i.action)}</div>`:''}
+    </div></div>`).join('')}</div>`:''}
+    <button class="btn btn-green btn-block" onclick="switchTab('ss')" style="padding:10px">📊 Review & Save to Smartsheet →</button>`);
+}
+
+function renderSteps(){
+  const steps=result?.nextSteps||[];
+  const wc=w=>({Sam:'ws',Consultant:'wc','Dutch Bros':'wb',GC:'wg'}[w]||'ws');
+  setBody(`<div class="rcard"><div class="rcard-title">→ Next Steps (${steps.length})</div>
+    ${steps.map((s,i)=>`<div class="step"><div class="step-num">${i+1}</div><div style="flex:1">
+      <div style="font-weight:500;margin-bottom:3px"><span class="step-who ${wc(s.who)}">${esc(s.who)}</span>${esc(s.action)}${s.urgent?'<span class="urgent">URGENT</span>':''}</div>
+      ${s.detail?`<div class="step-detail">${esc(s.detail)}</div>`:''}
+    </div></div>`).join('')}
+  </div>
+  <button class="btn btn-primary btn-block" onclick="switchTab('ss')" style="padding:10px">📊 Update Smartsheet →</button>`);
+}
+
+function renderSS(){
+  const u=result?.smartsheetUpdates||{};
+  const stageOpts=STAGES.map(s=>`<option value="${s}" ${s===(u.stage||selProj?.stage)?'selected':''}>${s}</option>`).join('');
+  const ai=v=>v?'ai':'';
+  const fv=(key,fallback)=>u[key]||selProj?.[fallback]||selProj?.[key]||'';
+
+  setBody(`
+    <div class="sbar sb-blue">✨ AI pre-filled from deliverable. <strong style="color:#10b981">Green = AI extracted.</strong> Edit anything before saving.</div>
+    ${!selProj?`<div class="sbar sb-orange">⚠️ No project selected — fill name to add as new row.</div>`:''}
+    <div class="rcard">
+      <div class="rcard-title">📊 Fields to Update</div>
+      <table class="ss-tbl">
+        <tr><td>Project</td><td><input class="ssi" id="ss-proj" value="${esc(selProj?.name||'')}"/></td></tr>
+        <tr><td>Stage</td><td><select class="ssi ${ai(u.stage)}" id="ss-stage">${stageOpts}</select></td></tr>
+        <tr><td>GC</td><td><input class="ssi ${ai(u.gc)}" id="ss-gc" value="${esc(fv('gc','gc'))}"/></td></tr>
+        <tr><td>Permit Submittal</td><td><input class="ssi ${ai(u.permitSub)}" id="ss-psub" value="${esc(fv('permitSub','permitSub'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>Permit Ready</td><td><input class="ssi ${ai(u.permitReady)}" id="ss-pready" value="${esc(fv('permitReady','permitReady'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>Bids Out</td><td><input class="ssi ${ai(u.bidsOut)}" id="ss-bidsout" value="${esc(fv('bidsOut','bidsOut'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>Bid Date</td><td><input class="ssi ${ai(u.bidDate)}" id="ss-biddate" value="${esc(fv('bidDate','bidDate'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>Construction Start</td><td><input class="ssi ${ai(u.conStart)}" id="ss-constart" value="${esc(fv('conStart','conStart'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>TCO/CO</td><td><input class="ssi ${ai(u.tco)}" id="ss-tco" value="${esc(fv('tco','tco'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>Plans Submitted</td><td><input class="ssi ${ai(u.plansSubmitted)}" id="ss-plans" value="${esc(fv('plansSubmitted','plansSubmitted'))}" placeholder="YYYY-MM-DD"/></td></tr>
+        <tr><td>Project Notes</td><td><textarea class="ssi ${ai(u.notes)}" id="ss-notes" style="min-height:90px;resize:vertical">${esc(u.notes||selProj?.notes||'')}</textarea></td></tr>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${selProj?`<button class="btn btn-green" onclick="updateRow()">💾 Update "${esc(selProj.name)}" in Smartsheet</button>`
+               :`<button class="btn btn-primary" onclick="addRow()">➕ Add as New Row</button>`}
+    </div>
+    <div id="ssRes" style="margin-top:10px"></div>`);
+}
+
+// ── SS WRITE ──
+async function updateRow(){
+  if(!selProj)return;const token=getToken();if(!token){alert('Connect Smartsheet first.');return;}
+  document.getElementById('ssRes').innerHTML=`<div class="sbar sb-blue"><div class="spin"></div> Updating Smartsheet...</div>`;
+  try{
+    const cells=[
+      {col:'Stage',el:'ss-stage'},{col:'GC',el:'ss-gc'},
+      {col:'Permit Submittal',el:'ss-psub'},{col:'Permit Ready',el:'ss-pready'},
+      {col:'Bids Out',el:'ss-bidsout'},{col:'Bid Date',el:'ss-biddate'},
+      {col:'Construction Start',el:'ss-constart'},{col:'TCO/CO',el:'ss-tco'},
+      {col:'Plans Submitted to Tenant',el:'ss-plans'},{col:'Project Notes',el:'ss-notes'},
+    ].filter(x=>cols[x.col]).map(x=>({columnId:cols[x.col],value:document.getElementById(x.el)?.value?.trim()||''})).filter(c=>c.value);
+
+    const r=await fetch(`https://api.smartsheet.com/2.0/sheets/${SS_SHEET_ID}/rows`,{method:'PUT',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify([{id:selProj._id,cells}])});
+    const d=await r.json();if(!r.ok)throw new Error(d.message||'Update failed');
+    document.getElementById('ssRes').innerHTML=`<div class="sbar sb-green">✅ "${selProj.name}" updated in Smartsheet!</div>`;
+    toast('✅ Smartsheet updated!');await loadProjects();
+    selProj=allProjs.find(p=>p._id===selProj._id)||selProj;
+  }catch(e){document.getElementById('ssRes').innerHTML=`<div class="sbar sb-red">❌ ${esc(e.message)}</div>`;}
+}
+
+async function addRow(){
+  const token=getToken();if(!token){alert('Connect Smartsheet first.');return;}
+  const name=document.getElementById('ss-proj')?.value?.trim();if(!name){alert('Project name required.');return;}
+  document.getElementById('ssRes').innerHTML=`<div class="sbar sb-blue"><div class="spin"></div> Adding row...</div>`;
+  try{
+    const cells=[
+      {col:'Project',el:'ss-proj'},{col:'Stage',el:'ss-stage'},{col:'GC',el:'ss-gc'},
+      {col:'Permit Submittal',el:'ss-psub'},{col:'Permit Ready',el:'ss-pready'},
+      {col:'Bids Out',el:'ss-bidsout'},{col:'Bid Date',el:'ss-biddate'},
+      {col:'Construction Start',el:'ss-constart'},{col:'TCO/CO',el:'ss-tco'},
+      {col:'Plans Submitted to Tenant',el:'ss-plans'},{col:'Project Notes',el:'ss-notes'},
+    ].filter(x=>cols[x.col]).map(x=>({columnId:cols[x.col],value:document.getElementById(x.el)?.value?.trim()||''})).filter(c=>c.value);
+    const r=await fetch(`https://api.smartsheet.com/2.0/sheets/${SS_SHEET_ID}/rows`,{method:'POST',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify([{toBottom:true,cells}])});
+    const d=await r.json();if(!r.ok)throw new Error(d.message||'Add failed');
+    document.getElementById('ssRes').innerHTML=`<div class="sbar sb-green">✅ New row added to Smartsheet!</div>`;
+    toast('✅ Added!');await loadProjects();
+  }catch(e){document.getElementById('ssRes').innerHTML=`<div class="sbar sb-red">❌ ${esc(e.message)}</div>`;}
+}
+
+// ── UTILS ──
+function setBody(h){document.getElementById('rbody').innerHTML=h;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3500);}
+function clearAll(){
+  files=[];result=null;selProj=null;
+  document.getElementById('chips').innerHTML='';
+  document.getElementById('paste').value='';
+  document.getElementById('projSearch').value='';
+  document.getElementById('manualName').value='';
+  document.getElementById('projList').style.display='none';
+  document.getElementById('selBadge').style.display='none';
+  setBody(`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Ready</div><div class="empty-sub">Select a project and upload your next deliverable.</div></div>`);
+}
+
+window.addEventListener('load',()=>{const t=localStorage.getItem('ss_token');if(t){ssToken=t;setBadge(true);loadProjects();}});
+</script>
+</body>
+</html>

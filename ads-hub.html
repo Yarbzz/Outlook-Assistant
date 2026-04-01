@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ADS Operations Hub</title>
+<style>
+/* ── SHARED BASE ── */
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2334;--border:#2a3047;--accent:#3b82f6;--accent2:#06b6d4;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#e8eaf0;--muted:#6b7280;--subtle:#374151}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden}
+
+/* ── TOP NAV ── */
+.topnav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:stretch;height:50px;gap:0}
+.topnav-logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;padding-right:24px;border-right:1px solid var(--border);margin-right:8px}
+.topnav-logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:0 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* ── PAGE CONTAINERS ── */
+.page{display:none;height:calc(100vh - 50px);overflow:hidden}
+.page.active{display:flex;flex-direction:column}
+
+/* ── SHARED BUTTONS ── */
+.btn{padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:white}.btn-primary:hover{background:#2563eb}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:var(--subtle)}
+.btn-green{background:var(--green);color:white}.btn-green:hover{background:#059669}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}.btn-danger:hover{background:rgba(239,68,68,.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-full{width:100%;justify-content:center}
+
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--subtle);border-radius:2px}
+
+/* ══ VENDOR PAGE CSS ══ */
+
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2334;--border:#2a3047;--accent:#3b82f6;--accent2:#06b6d4;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#e8eaf0;--muted:#6b7280;--subtle:#374151}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.logo{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+.topbar-stats{display:flex;gap:16px;margin-left:auto;align-items:center}
+.stat-pill{padding:4px 12px;border-radius:20px;font-size:12px;border:1px solid var(--border);color:var(--muted)}
+.stat-pill span{color:var(--text);font-weight:600}
+.btn{padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:#2563eb}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--subtle)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.25)}
+.layout{display:flex;height:calc(100vh - 53px)}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:12px 0}
+.sidebar-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 16px 4px}
+.filter-btn{width:100%;padding:8px 16px;border:none;background:none;text-align:left;font-size:13px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s}
+.filter-btn:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.filter-btn.active{background:rgba(59,130,246,.1);color:var(--accent)}
+.filter-count{font-size:11px;padding:1px 6px;border-radius:10px;background:var(--surface2)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;background:var(--surface)}
+.search-wrap{flex:1;position:relative}
+.search-wrap input{width:100%;padding:8px 12px 8px 34px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit}
+.search-wrap input:focus{outline:none;border-color:var(--accent)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.table-wrap{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:10}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--text)}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid rgba(42,48,71,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr.selected td{background:rgba(59,130,246,.06)}
+.company-name{font-weight:500;color:var(--text)}
+.contact-name{color:var(--muted);font-size:12px;margin-top:1px}
+.type-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;border:1px solid var(--border);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.s-preferred{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.s-hired{background:rgba(59,130,246,.1);color:var(--accent);border:1px solid rgba(59,130,246,.3)}
+.s-qualified{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.s-prospect{background:rgba(245,158,11,.1);color:var(--orange);border:1px solid rgba(245,158,11,.3)}
+.s-notqualified{background:rgba(107,114,128,.1);color:var(--muted);border:1px solid rgba(107,114,128,.3)}
+.s-blacklisted{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.s-unknown{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.market-text{font-size:12px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.email-link{color:var(--accent);text-decoration:none;font-size:12px}
+.email-link:hover{text-decoration:underline}
+.phone-text{font-size:12px;color:var(--muted);font-family:monospace}
+.row-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+tr:hover .row-actions{opacity:1}
+.notes-text{font-size:11px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:5}
+.modal-title{font-size:16px;font-weight:600}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.field input,.field textarea,.field select{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field textarea{height:80px;resize:vertical}
+.section-divider{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;grid-column:1/-1;padding-top:8px;border-top:1px solid var(--border);margin-top:4px}
+
+/* Detail panel */
+.detail-panel{width:380px;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;display:none}
+.detail-panel.open{display:block}
+.detail-header{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.detail-company{font-size:17px;font-weight:600;margin-bottom:4px}
+.detail-section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.detail-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.detail-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px}
+.detail-row-label{color:var(--muted);min-width:80px;flex-shrink:0}
+.detail-row-val{color:var(--text);word-break:break-word}
+.detail-actions{padding:16px 20px;display:flex;gap:8px;flex-wrap:wrap}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;z-index:200;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:slideUp .2s ease}
+.toast.show{display:flex}
+@keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .15s ease}
+
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--subtle);border-radius:2px}
+
+
+/* ══ BID PAGE CSS ══ */
+
+:root {
+  --bg: #0f1117;
+  --surface: #181c27;
+  --surface2: #1e2334;
+  --border: #2a3047;
+  --accent: #3b82f6;
+  --accent2: #06b6d4;
+  --green: #10b981;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --text: #e8eaf0;
+  --muted: #6b7280;
+  --subtle: #374151;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; }
+.topbar-logo .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+.topbar-actions { display: flex; gap: 10px; }
+
+.layout { display: flex; height: calc(100vh - 53px); }
+
+.left-panel { width: 320px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+.panel-section { padding: 20px; border-bottom: 1px solid var(--border); }
+.panel-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+.field input, .field textarea, .field select {
+  width: 100%; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-size: 13px; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.field textarea { height: 80px; resize: vertical; }
+
+.discipline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.disc-chip { padding: 7px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+.disc-chip:hover { border-color: var(--accent); }
+.disc-chip.active { background: rgba(59,130,246,0.15); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+.btn { padding: 9px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: #2563eb; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-green { background: var(--green); color: white; }
+.btn-green:hover { background: #059669; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--subtle); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-full { width: 100%; justify-content: center; }
+
+.main-panel { flex: 1; overflow-y: auto; padding: 24px; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.section-title { font-size: 14px; font-weight: 600; }
+
+.tabs { display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; margin-bottom: 20px; }
+.tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; border-radius: 6px; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+.tab.active { background: var(--accent); color: white; font-weight: 500; }
+
+.consultant-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; transition: border-color 0.15s; }
+.consultant-card:hover { border-color: var(--subtle); }
+.consultant-card.selected { border-color: var(--accent); background: rgba(59,130,246,0.05); }
+.consultant-check { width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: all 0.15s; }
+.consultant-card.selected .consultant-check { background: var(--accent); border-color: var(--accent); }
+.consultant-info { flex: 1; }
+.consultant-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.consultant-firm { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.consultant-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { padding: 2px 8px; border-radius: 20px; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.tag.civil { border-color: #3b82f6; color: #3b82f6; }
+.tag.geotech { border-color: #f59e0b; color: #f59e0b; }
+.tag.env { border-color: #10b981; color: #10b981; }
+.tag.survey { border-color: #8b5cf6; color: #8b5cf6; }
+.tag.arch { border-color: #ec4899; color: #ec4899; }
+.tag.traffic { border-color: #06b6d4; color: #06b6d4; }
+.tag.new { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.1); }
+.consultant-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.email-preview { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+.email-preview-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+.email-preview-to { font-size: 12px; color: var(--muted); }
+.email-preview-to strong { color: var(--text); }
+.email-preview-body { padding: 16px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; color: var(--text); max-height: 240px; overflow-y: auto; }
+
+.status-bar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--surface2); border-radius: 6px; font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.status-dot.loading { background: var(--orange); animation: pulse 1s infinite; }
+
+.add-consultant-form { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; display: none; }
+.add-consultant-form.open { display: block; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
+.empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+.research-result { background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2); border-radius: 8px; padding: 14px; margin-bottom: 8px; }
+.research-result-name { font-size: 14px; font-weight: 500; color: var(--accent2); margin-bottom: 4px; }
+.research-result-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.progress-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+.sent-badge { padding: 3px 8px; background: rgba(16,185,129,0.15); border: 1px solid var(--green); border-radius: 4px; font-size: 11px; color: var(--green); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation: fadeIn 0.2s ease; }
+
+.spinner-sm { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 2px; }
+
+
+/* ── OVERRIDES ── */
+.page .topbar,.page .topbar-logo,.topbar-actions{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="topnav-logo"><div class="topnav-logo-dot"></div>ADS Operations Hub</div>
+  <div class="nav-tab active" id="nav-vendors" onclick="switchPage('vendors')">👥 Vendor List</div>
+  <div class="nav-tab" id="nav-bid" onclick="switchPage('bid')">📋 Bid Request</div>
+  <div class="nav-right">
+    <div id="topbarStats" style="display:flex;gap:8px;align-items:center"></div>
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='index.html'">← Email</button>
+  </div>
+</div>
+
+<!-- VENDOR PAGE -->
+<div class="page active" id="page-vendors">
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;gap:10px;align-items:center">
+    <div style="flex:1;position:relative">
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search company, contact, market, email..." oninput="render()" style="width:100%;padding:7px 12px 7px 32px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit"/>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear Filters</button>
+    <span id="resultCount" style="font-size:12px;color:var(--muted);white-space:nowrap"></span>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Add Vendor</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">↓ Export</button>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden">
+    <div class="sidebar" style="height:100%">
+      <div class="sidebar-label">Status</div>
+      <button class="filter-btn active" id="f-all" onclick="setFilter('status','all')">All Vendors <span class="filter-count" id="fc-all">0</span></button>
+      <button class="filter-btn" id="f-preferred" onclick="setFilter('status','1 Preferred')">⭐ Preferred <span class="filter-count" id="fc-preferred">0</span></button>
+      <button class="filter-btn" id="f-hired" onclick="setFilter('status','2 Hired')">✓ Hired <span class="filter-count" id="fc-hired">0</span></button>
+      <button class="filter-btn" id="f-qualified" onclick="setFilter('status','3 Qualified')">◎ Qualified <span class="filter-count" id="fc-qualified">0</span></button>
+      <button class="filter-btn" id="f-prospect" onclick="setFilter('status','4 Prospect')">◷ Prospect <span class="filter-count" id="fc-prospect">0</span></button>
+      <button class="filter-btn" id="f-notqualified" onclick="setFilter('status','zNot Qualified')">✗ Not Qualified <span class="filter-count" id="fc-notqualified">0</span></button>
+      <button class="filter-btn" id="f-blacklisted" onclick="setFilter('status','zzBlacklisted')">⛔ Blacklisted <span class="filter-count" id="fc-blacklisted">0</span></button>
+      <div class="sidebar-label" style="margin-top:8px">Discipline</div>
+      <div id="typeFilters"></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div class="table-wrap" id="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sort('company')">Company ↕</th>
+              <th onclick="sort('type')">Type ↕</th>
+              <th onclick="sort('status')">Status ↕</th>
+              <th onclick="sort('markets')">Markets ↕</th>
+              <th>Contact</th>
+              <th>Email / Phone</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="detail-panel" id="detailPanel"></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Vendor</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full"><label>Company Name *</label><input id="f-company" placeholder="Company name"/></div>
+        <div class="field"><label>Type / Discipline</label>
+          <select id="f-type">
+            <option value="">-- Select --</option>
+            <option>Architect</option><option>Civil Engineer</option><option>Environmental</option>
+            <option>General Contractor</option><option>Geotechnical</option><option>Land Surveying</option>
+            <option>Landscape Architect</option><option>MEP</option><option>Signage</option>
+            <option>Soils</option><option>Structural Engineer</option><option>Surveyor</option>
+            <option>Traffic Engineer</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="f-status">
+            <option value="1 Preferred">1 Preferred</option>
+            <option value="2 Hired">2 Hired</option>
+            <option value="3 Qualified">3 Qualified</option>
+            <option value="4 Prospect">4 Prospect</option>
+            <option value="zNot Qualified">Not Qualified</option>
+            <option value="zzBlacklisted">Blacklisted</option>
+          </select>
+        </div>
+        <div class="field form-full"><label>Markets / Geographic Coverage</label><input id="f-markets" placeholder="e.g. Phoenix, AZ; Dallas, TX"/></div>
+        <div class="section-divider">Primary Contact</div>
+        <div class="field"><label>Contact Name</label><input id="f-primaryContact" placeholder="Name, Title"/></div>
+        <div class="field"><label>Email</label><input id="f-email" type="email" placeholder="email@firm.com"/></div>
+        <div class="field"><label>Phone</label><input id="f-phone" placeholder="555-555-5555"/></div>
+        <div class="field"><label>Address</label><input id="f-address" placeholder="Street, City, State Zip"/></div>
+        <div class="section-divider">Additional Info</div>
+        <div class="field form-full"><label>Secondary Contact</label><input id="f-secondaryContact" placeholder="Name, Title, Phone, Email"/></div>
+        <div class="field"><label>Website</label><input id="f-website" placeholder="https://..."/></div>
+        <div class="field form-full"><label>Notes</label><textarea id="f-notes" placeholder="Internal notes, project history, recommendations..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVendor()" id="saveBtn">Save Vendor</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- BID REQUEST PAGE -->
+<div class="page" id="page-bid" style="flex-direction:row">
+  <div class="left-panel">
+    <div class="panel-section">
+      <div class="panel-label">Project Details</div>
+      <div class="field"><label>Project Name</label><input id="projName" placeholder="e.g. Tractor Supply — Taylor, TX"/></div>
+      <div class="field"><label>Project Location</label><input id="projLocation" placeholder="City, State"/></div>
+      <div class="field"><label>Project Type</label>
+        <select id="projType">
+          <option>Retail Development</option><option>Mixed Use</option><option>Industrial</option>
+          <option>Multifamily</option><option>Office</option><option>Healthcare</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Scope of Work</label><textarea id="projScope" placeholder="Brief description of the project scope..."></textarea></div>
+      <div class="field"><label>Proposal Due Date</label><input type="date" id="projDue"/></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">Disciplines Needed</div>
+      <div class="discipline-grid" id="discGrid">
+        <div class="disc-chip active" data-disc="Civil/Site Engineering" onclick="toggleDisc(this)">⚙️ Civil</div>
+        <div class="disc-chip active" data-disc="Geotechnical" onclick="toggleDisc(this)">🪨 Geotech</div>
+        <div class="disc-chip active" data-disc="Environmental" onclick="toggleDisc(this)">🌿 Environmental</div>
+        <div class="disc-chip active" data-disc="Surveying" onclick="toggleDisc(this)">📐 Survey</div>
+        <div class="disc-chip active" data-disc="Architecture" onclick="toggleDisc(this)">🏛️ Architecture</div>
+        <div class="disc-chip active" data-disc="Traffic/Transportation" onclick="toggleDisc(this)">🚦 Traffic</div>
+      </div>
+    </div>
+    <div class="panel-section" style="flex:1">
+      <div class="panel-label">Actions</div>
+      <button class="btn btn-primary btn-full" onclick="runResearch()" style="margin-bottom:8px">🔍 Research Consultants in Area</button>
+      <button class="btn btn-secondary btn-full" onclick="generateAllEmails()" style="margin-bottom:8px">✉️ Generate RFP Emails</button>
+      <button class="btn btn-green btn-full" onclick="sendAllEmails()">🚀 Send to Selected</button>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <div class="panel-label">Load from Vendor List</div>
+        <button class="btn btn-secondary btn-full" onclick="loadFromVendors()" style="margin-top:4px">↑ Import Preferred Vendors</button>
+      </div>
+    </div>
+  </div>
+  <div class="main-panel">
+    <div class="tabs">
+      <div class="tab active" onclick="switchBidTab('consultants',this)">👥 Consultants</div>
+      <div class="tab" onclick="switchBidTab('emails',this)">✉️ RFP Emails</div>
+      <div class="tab" onclick="switchBidTab('research',this)">🔍 Research</div>
+    </div>
+    <div id="tab-consultants">
+      <div class="section-header">
+        <span class="section-title">Consultant Roster <span id="selectedCount" style="color:var(--muted);font-weight:400;font-size:12px;"></span></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="selectAll()">Select All</button>
+          <button class="btn btn-ghost btn-sm" onclick="deselectAll()">Deselect All</button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleAddForm()">+ Add</button>
+        </div>
+      </div>
+      <div class="add-consultant-form" id="addForm">
+        <div class="panel-label" style="margin-bottom:10px">New Consultant</div>
+        <div class="form-row">
+          <div class="field"><label>Name</label><input id="newName" placeholder="John Smith"/></div>
+          <div class="field"><label>Firm</label><input id="newFirm" placeholder="Smith Engineering"/></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Email</label><input id="newEmail" placeholder="john@firm.com"/></div>
+          <div class="field"><label>Phone</label><input id="newPhone" placeholder="555-555-5555"/></div>
+        </div>
+        <div class="field"><label>Discipline</label>
+          <select id="newDisc">
+            <option>Civil/Site Engineering</option><option>Geotechnical</option><option>Environmental</option>
+            <option>Surveying</option><option>Architecture</option><option>Traffic/Transportation</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-primary btn-sm" onclick="addConsultant()">Add</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleAddForm()">Cancel</button>
+        </div>
+      </div>
+      <div id="consultantList"></div>
+    </div>
+    <div id="tab-emails" style="display:none">
+      <div class="section-header">
+        <span class="section-title">RFP Email Drafts</span>
+        <button class="btn btn-secondary btn-sm" onclick="generateAllEmails()">↺ Regenerate All</button>
+      </div>
+      <div id="emailPreviews"><div class="empty-state"><div class="empty-icon">✉️</div>Click "Generate RFP Emails" to create drafts.</div></div>
+    </div>
+    <div id="tab-research" style="display:none">
+      <div class="section-header"><span class="section-title">AI Research Results</span></div>
+      <div id="researchResults"><div class="empty-state"><div class="empty-icon">🔍</div>Click "Research Consultants in Area" to find firms near your project location.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// SHARED
+// ══════════════════════════════════════════════════
+const PROXY_URL='https://anthropic-proxy.yarbs7sam.workers.dev';
+const SIG=`\n\nThanks,\nSam Yarbrough | Construction Manager\n2415 E. Camelback Road, Suite 400 | Phoenix, AZ 85016\nOffice: 602.682.6075 | Mobile: 480.427.7747\nsam@accelerateddevelopment.com | www.accelerateddevelopment.com`;
+
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nav-'+page).classList.add('active');
+}
+
+async function claudeAPI(prompt, tools) {
+  const body={model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]};
+  if(tools)body.tools=tools;
+  const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(d.error)throw new Error(JSON.stringify(d.error));
+  return d;
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ══════════════════════════════════════════════════
+// VENDOR LIST
+// ══════════════════════════════════════════════════
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'ads_vendors_v2';
+
+const SEED_VENDORS = [{"id":1,"type":"Architect","status":"1 Preferred","company":"Castles Design Group","markets":"Houston, TX; FL","primaryContact":"Steven Pratt","phone":"713.664.7974 x1308","email":"spratt@castlesdesigngroup.com","address":"3801 Kirby Drive, Suite 600\nHouston, Texas  77098","secondaryContact":"","website":"http://www.castlesdesigngroup.com","notes":"Working in Florida"},{"id":2,"type":"Architect","status":"1 Preferred","company":"Armet Davis Newlove & Associates","markets":"Los Angeles, CA; Las Cruces, NM","primaryContact":"Paul Deppe, Partner","phone":"o: 310-452-5533 x203 \nc: 310-503-7778","email":"deppe@adnarch.com","address":"","secondaryContact":"","website":"http://adnarch.com/","notes":""},{"id":3,"type":"Architect","status":"1 Preferred","company":"Coralic Architecture","markets":"AZ; OK; KS","primaryContact":"Edin Coralic, Arhitect","phone":"o. 314-578-4953","email":"edin@coralicarchitecture.com","address":"","secondaryContact":"","website":"https://www.coralicarchitecture.com/","notes":""},{"id":4,"type":"Environmental","status":"1 Preferred","company":"Integral Environmental","markets":"West TX","primaryContact":"Marty Flanders","phone":"972-436-3171 \n972-839-5067 (cell)","email":"Marty@integral-e.com","address":"896 N. Mill, Suite 201-E, Lewisville, Texas 75057","secondaryContact":"","website":"","notes":""},{"id":5,"type":"Soils, Environmental","status":"1 Preferred","company":"Intertek-PSI","markets":"Santa Fe, NM; San Antonio, TX","primaryContact":"Ed Purske, Business Development Manager","phone":"m: 210-842-3424 o: 210-342-9377","email":"ed.pruske@psiusa.com","address":"","secondaryContact":"","website":"https://www.psiusa.com/","notes":""},{"id":6,"type":"General Contractor","status":"1 Preferred","company":"Project Builders","markets":"GA","primaryContact":"Jamie Matlock","phone":"(678)916-4336","email":"jamie@projectbuilders.com","address":"2979 Clairmont Rd, NE ste 150, Atlanta, GA 30329","secondaryContact":"","website":"https://projectbuilders.com/","notes":"Dutch Bros Preferred"},{"id":7,"type":"General Contractor","status":"1 Preferred","company":"Horizon Construction","markets":"GA","primaryContact":"Kyle Jones","phone":"(770)314-2821","email":"kjones@horizonc.com","address":"415 Winkler Dr, Alpharetta, GA 30004","secondaryContact":"","website":"https://www.horizonc.com/","notes":"Dutch Bros Preferred"},{"id":8,"type":"General Contractor","status":"1 Preferred","company":"Tatco Construction","markets":"OK, FL","primaryContact":"Brett Tatum","phone":"(405) 757-7714","email":"brett@tatco.construction.com","address":"1101 Gulmor Dr, Edmond OK, 73034","secondaryContact":"","website":"https://www.tatco.construction/","notes":"Dutch Bros Preferred"},{"id":9,"type":"General Contractor","status":"1 Preferred","company":"Ganaway Contracting Company","markets":"GA","primaryContact":"Susan Monson","phone":"(770)365-2226","email":"susan_monson@ganaway.com","address":"419 E Crossville Rd, Ste 203 Roswell GA 30075","secondaryContact":"","website":"https://www.ganaway.com/","notes":"Dutch Bros Preferred"},{"id":10,"type":"General Contractor","status":"1 Preferred","company":"Caliber 1 Construction","markets":"GA","primaryContact":"Shawn Groebner","phone":"(678)231-8321","email":"sgroebner@caliber1construction.com","address":"1 Community Square Blvd, Ste 200 Villa Rica, GA 30180","secondaryContact":"","website":"https://caliber1construction.com/","notes":"Dutch Bros Preferred"},{"id":11,"type":"Land Surveying","status":"1 Preferred","company":"Alliance Land Surveying LLC","markets":"AZ","primaryContact":"Bryan Goetzenberger","phone":"(623)972-2200","email":"contactus@azals.com","address":"7900 N 70th Ave, Suite 104, Glendale, AZ 85303","secondaryContact":"","website":"alliancelandsurveying.com","notes":"VT Preferred"},{"id":12,"type":"Architect","status":"2 Hired","company":"The Nunnally Studio","markets":"Dallas-Fort Worth, TX","primaryContact":"Eric L. Nunnally Sr., President/Director of Design and Planning","phone":"D: 469.513.4077  \nM:  817.721.0320","email":"enunnally@tnsarchitects.com","address":"","secondaryContact":"","website":"https://www.tnstudio.org/","notes":""},{"id":13,"type":"Civil Engineer","status":"2 Hired","company":"Isaacson & Arfman, Inc.","markets":"Albuquerque, NM","primaryContact":"Fred Arfman","phone":"505-268-8828","email":"freda@iacivil.com","address":"128 Monroe St NE, Albuquerque, NM 87108","secondaryContact":"","website":"","notes":""},{"id":14,"type":"Civil Engineer","status":"2 Hired","company":"Foresite","markets":"Dallas, TX","primaryContact":"John Rhodes","phone":"Cell: 770-861-0188","email":"jrhodes@fg-inc.net","address":"1999 Bryan St, Suite 890, Dallas, TX  75201","secondaryContact":"","website":"","notes":""},{"id":15,"type":"Civil Engineer","status":"2 Hired","company":"Bowman (Formerly Terra Associates)","markets":"Houston, TX; San Antonio, TX","primaryContact":"Lyle Henkel, President","phone":"(713) 993-0333 ext. 104","email":"eh@terraassoc.com","address":"","secondaryContact":"","website":"https://terraassoc.com","notes":"Work all across Texas"},{"id":16,"type":"Civil Engineer, Surveyor","status":"2 Hired","company":"OJD Engineering","markets":"Amarillo, TX","primaryContact":"Che Shadle, Vice President","phone":"ph. 806-352-7117","email":"Che.Shadle@ojdengineering.com","address":"","secondaryContact":"","website":"http://www.ojdengineering.com/contact.html","notes":""},{"id":17,"type":"Civil Engineer","status":"2 Hired","company":"Dunaway","markets":"Dallas-Fort Worth,TX","primaryContact":"Chris Biggers, Engagement Manager| Principal","phone":"T 817-335-1121 D 817-632-4709 C 817-287-8814","email":"CBiggers@dunaway.com","address":"","secondaryContact":"","website":"https://dunawayassociates.com/","notes":""},{"id":18,"type":"Civil Engineer","status":"2 Hired","company":"CSA Design Group","markets":"El Paso, TX","primaryContact":"Eileen Karlsruher","phone":"915-877-4155 ext. 111","email":"EKARLSRUHER@csaengineers.com","address":"","secondaryContact":"Glen Brooks, ,GBROOKS@csaengineers.com","website":"http://csaengineers.com/","notes":""},{"id":19,"type":"Civil Engineer","status":"2 Hired","company":"Cypress Civil","markets":"Tucson, AZ","primaryContact":"Blake Junak, Project Manager","phone":"P 520-499-2456 C 586-601-4102","email":"bjunak@cypresscivil.com","address":"","secondaryContact":"","website":"cypresscivil.com","notes":""},{"id":20,"type":"Civil Engineer","status":"2 Hired","company":"McKay Burchett & Company Engineers","markets":"Clarksville, TN","primaryContact":"Cal Burchett, PE, RLS","phone":"Office: 931.245.3095\nCell: 931.249.6894","email":"cburchett@mbcengineer.com","address":"1545 Madison Street, Clarksville, TN 37040","secondaryContact":"","website":"www.mbcengineer.com","notes":"Recommendation from Amber Smith used on Walker Farms in TN"},{"id":21,"type":"Civil Engineer, Surveyor, Environmental, Soils","status":"2 Hired","company":"Souder Miller & Associates (SMA)","markets":"Las Cruces, NM; CO; AZ; El Paso, TX","primaryContact":"Michael Johnson, Senior Engineer","phone":"Direct/Mobile: 575.449.2769/575.642.5598 Office: 575.647.0799","email":"michael.johnson@soudermiller.com","address":"","secondaryContact":"","website":"www.soudermiller.com","notes":""},{"id":22,"type":"Environmental","status":"2 Hired","company":"GeoEngineers","markets":"Portland, OR","primaryContact":"Chris W. Breemer, Principal Geologist","phone":"503-351-6544","email":"cbreemer@geoengineers.com","address":"","secondaryContact":"Joel Mattecheck, jmattecheck@geoengineers.com","website":"https://www.geoengineers.com/","notes":""},{"id":23,"type":"Environmental","status":"2 Hired","company":"Rhoades Environmental","markets":"Albuquerque, NM","primaryContact":"Ron Rhoades, President","phone":"m. 505-252-8435 b. 505-892-7211","email":"","address":"504 7th Ave. NE Rio Rancho, NM 87124","secondaryContact":"","website":"https://rhoadesenvironmental.com/","notes":""},{"id":24,"type":"General Contractor","status":"2 Hired","company":"Lucky Construction Inc","markets":"Dallas-Fort Worth, TX","primaryContact":"Steve Lucky, President","phone":"Cell 214-957-5483","email":"Steve@luckyconstruction.com","address":"","secondaryContact":"","website":"http://www.luckyconstruction.com/","notes":""},{"id":25,"type":"General Contractor","status":"2 Hired","company":"Bear Construction Services","markets":"KS, MO","primaryContact":"Leland E. Hicks","phone":"Cell 913.238.0081","email":"l.hicks@bearconstructionservices.com","address":"","secondaryContact":"","website":"http://www.bearconstructionservices.com/home.html","notes":""},{"id":26,"type":"General Contractor","status":"2 Hired","company":"ECHELON Construction and Maintenance LLC","markets":"Farmers Branch, TX","primaryContact":"","phone":"Tel: 972-200-3850","email":"","address":"1750 Valley View Ln, Ste 450, Farmers Branch, TX 75234","secondaryContact":"","website":"https://www.echeloncm.com/","notes":"Has Dutch Bros on their website with Accelerated Dev on website."},{"id":27,"type":"Landscape Architect","status":"2 Hired","company":"MTH Design Group","markets":"Phoenix, AZ","primaryContact":"Mathew Taylor Horne","phone":"o: 602-374-4214, c: 859-948-5411","email":"matt@mthdesigngroup.com","address":"","secondaryContact":"","website":"www.mthdesigngroup.com","notes":"Helped design landscape plan at Buckeye Shops"},{"id":28,"type":"Landscape Architect","status":"2 Hired","company":"John Hucko Landscape Architect","markets":"Tucson, AZ","primaryContact":"John Hucko, Landscape Architect","phone":"520-400-8529","email":"jhucko789@comcast.net","address":"","secondaryContact":"","website":"","notes":""},{"id":29,"type":"Landscape Architect","status":"2 Hired","company":"The Dry Land","markets":"El Paso, TX; NM; AZ","primaryContact":"Jonathan Matthews","phone":"","email":"jonathan@thedryland.com","address":"110 Montecillo, Suite 1 C, El Paso, TX 79912","secondaryContact":"","website":"","notes":"Contractor for Las Cruces Main under SMA - ABQ Projects direct"},{"id":30,"type":"Signage","status":"2 Hired","company":"ES&A Sign & Awning Co.","markets":"OR; WA; CA","primaryContact":"Nicholas C. Johnson, Sales/Project Manager","phone":"Cell: 541.799.5160","email":"njohnson@esasigns.com","address":"","secondaryContact":"Michelle Morris, mmorris@esasigns.com","website":"http://esasigns.com/","notes":""},{"id":31,"type":"Signage","status":"2 Hired","company":"Southwest Signs (Apex Sign Group)","markets":"San Antonio, TX","primaryContact":"Kailiki Mendoza, Account Manager","phone":"p 210.757.9156 c 210.265.9524","email":"Kaliki.Mendoza@SouthwestSigns.com","address":"","secondaryContact":"","website":"https://www.apexsigngroup.com/","notes":"Recently Changed Name from Southwest to Apex"},{"id":32,"type":"Signage","status":"2 Hired","company":"Pearson Signs","markets":"Tucson, AZ","primaryContact":"Randy Garcia","phone":"520-792-2563","email":"randy@pearsonsigns.net","address":"","secondaryContact":"","website":"www.pearsonsigns.com","notes":""},{"id":33,"type":"Signage","status":"2 Hired","company":"Signs Plus","markets":"Phoenix, AZ, Prescott, AZ","primaryContact":"Gary Johnson, Account Manager","phone":"Cell:623.238.1099","email":"gary@arizonasignsplus.com","address":"","secondaryContact":"","website":"https://www.arizonasignsplus.com/","notes":""},{"id":34,"type":"Signage","status":"2 Hired","company":"J&B Graphics","markets":"Oklahoma City, OK","primaryContact":"Robert Morris, Vice President","phone":"Office: 405.524.7446","email":"rmorris@jandbgraphics.net","address":"","secondaryContact":"","website":"http://jandbgraphics.net/","notes":""},{"id":35,"type":"Soils","status":"2 Hired","company":"AT&E (Amarillo Testing & Engineering)","markets":"Amarillo, Lubbock, Midland/Odessa, TX; Hobbs, NM; OK","primaryContact":"Oziel Gonzalez","phone":"(806) 374-2756","email":"Ogonzalez@amarillotesting.com","address":"1113 N. McMasters Street, Amarillo, Texas 79106","secondaryContact":"","website":"https://www.amarillotesting.com/","notes":"Have worked with him previously on Amarillo Soncy Dutch property."},{"id":36,"type":"Soils, Environmental","status":"2 Hired","company":"GSI Engineering","markets":"Wichita, KS","primaryContact":"Mike Balleau, Project Geologist","phone":"Tel: 316.554.0725 | Cell: 316.518.8089","email":"mballeau@gsinetwork.com","address":"","secondaryContact":"Matthew Tye, MTye@gsinetwork.com","website":"http://gsinetwork.com/","notes":""},{"id":37,"type":"Soils, Environmental","status":"2 Hired","company":"Western Technologies","markets":"AZ, NM","primaryContact":"David Regonini, REPA","phone":"602.682.8195 AZ | 505.823.4488 NM","email":"david.r@wt-us.com","address":"8305 Washington Place, Albuquerque, NM","secondaryContact":"","website":"https://wt-us.com/","notes":""},{"id":38,"type":"TAS","status":"2 Hired","company":"Lubbock Inspection Service","markets":"Lubbock, TX","primaryContact":"Landy Perkins","phone":"806-793-5884","email":"info@lubinspec.com","address":"","secondaryContact":"","website":"","notes":""},{"id":41,"type":"Civil Engineer","status":"2 Hired","company":"Bohler","markets":"TX","primaryContact":"Dean Caldwell","phone":"O: (469) 458-2842, C: (208)830-5237","email":"dcardwell@bohlereng.com","address":"2600 Network Blvd, Suite 310 Frisco, TX 75034","secondaryContact":"","website":"","notes":""},{"id":48,"type":"Civil Engineers","status":"2 Hired","company":"CivTech","markets":"Scottsdale, AZ","primaryContact":"Amber Smith","phone":"","email":"asmith@vtcompanies.com","address":"14747 N. Northsight Blvd., Suite 111-431 Scottsdale, AZ 85260","secondaryContact":"","website":"","notes":""},{"id":49,"type":"Civil, Geotech, Environmental and Surveying","status":"2 Hired","company":"Dynamic Engineering","markets":"NJ; TX; PA; FL; MD","primaryContact":"Warren Hilla","phone":"(281)789-6400","email":"https://www.dynamicec.com","address":"6925 Portwest Drive, Suite 100 Houston, Texas 77024","secondaryContact":"","website":"https://www.dynamicec.com/","notes":"Has fast food experience."},{"id":50,"type":"Surveyor","status":"2 Hired","company":"South Texas Surveying","markets":"Houston, TX","primaryContact":"Fred Lawton","phone":"(281) 556-6918","email":"neworders@stsurvey.com","address":"11281 Richmond Ave. Bldg. J Suite 101, Houston, TX 77082","secondaryContact":"","website":"https://stsurvey.com/","notes":"Used on Humble 8 LLC"},{"id":53,"type":"Surveyor","status":"2 Hired","company":"Windrose","markets":"Dallas-Fort Worth, San Antonio, Houston, TX","primaryContact":"Mark Peeples, Survey Operations Manager","phone":"o: 972-204-5756 m:817-403-3003","email":"mark.peeples@windroseservices.com","address":"","secondaryContact":"Grayson Ceballos, grayson.ceballos@windroseservices.com","website":"WINDROSESERVICES.COM","notes":""},{"id":54,"type":"Surveyor","status":"2 Hired","company":"Merestone Surveying","markets":"Wichita, KS","primaryContact":"Todd Hornbaker","phone":"O: 316-425-7770 C: 316-217-5764","email":"thornbaker@merestoneks.com","address":"","secondaryContact":"","website":"https://www.merestoneks.com/","notes":""},{"id":56,"type":"Civil","status":"2 Hired","company":"Kimley-Horn","markets":"Chester, VA","primaryContact":"Charlie Haywood","phone":"804 554 3797","email":"Charlie.Haywood@kimley-horn.com","address":"2035 Maywill Street, Suite 200, Richmond, VA 23230","secondaryContact":"Laura Anderson, Laura.Anderson@kimley-horn.com","website":"https://www.kimley-horn.com/","notes":"Used on Chester Jefferson"},{"id":57,"type":"Soils, Environmental","status":"2 Hired","company":"EBI Consultants","markets":"WA, NC","primaryContact":"Nathan Davies","phone":"781.425.5119","email":"ndavies@ebiconsulting.com","address":"21 B Street, Burlington, MA 01803","secondaryContact":"","website":"www.ebiconsulting.com","notes":"Used on Kernersville and Augusta Washington"},{"id":58,"type":"Civil, Surveyor","status":"2 Hired","company":"Becker Morgan Group","markets":"Fort Mill, SC; NC; MD; DE","primaryContact":"Mark Strickland","phone":"910.341.7600 o | 302.233.3071 m","email":"mstrickland@beckermorgan.com","address":"3333 Jaeckle Drive, Suite 120, Wilmington, NC 28403","secondaryContact":"","website":"www.beckermorgan.com","notes":"Used on Fort Mill 160"},{"id":59,"type":"Civil, Surveyor","status":"2 Hired","company":"Pickering Associates","markets":"Huntington, WV","primaryContact":"Mark A. Welch","phone":"p: 304.464.5305 | m: 304.483.6415","email":"mwelch@pickeringusa.com","address":"11283 Emerson Ave. Parkersburg, WV 26104","secondaryContact":"","website":"www.pickeringusa.com","notes":"Used on Huntington 60"},{"id":61,"type":"Environmental, Surveyor","status":"2 Hired","company":"BBG Real Estate Services","markets":"Phoenix, AZ","primaryContact":"Arielle Litt, Managing Director","phone":"602-648-8608","email":"alitt@bbgres.com","address":"2850 E. Camelback Road Suite 330, Phoenix, AZ 85016","secondaryContact":"","website":"https://bbgres.com/","notes":"Used on Gilbert San Tan"},{"id":62,"type":"Signage","status":"2 Hired","company":"Bootz & Duke Sign Company","markets":"Phoenix, AZ","primaryContact":"Andrew Gibson","phone":"O: 602-272-9356, C: 602-818-4941","email":"andy@bootzandduke.com","address":"2831 W Weldon Ave, Phoenix, AZ 85017","secondaryContact":"","website":"https://bootzandduke.com/","notes":""},{"id":63,"type":"Surveyor","status":"2 Hired","company":"Site Design Inc","markets":"SC, NC, GA","primaryContact":"Craig Winnal","phone":"(864) 373-1615","email":"cwinnall@sitedesign-inc.com","address":"225 Rocky Creek Rd, Greenville, SC 29615","secondaryContact":"","website":"https://www.sitedesign-inc.com/","notes":""},{"id":64,"type":"Civil, Environmental, Soils","status":"2 Hired","company":"Burgess Engineering & Testing","markets":"OK","primaryContact":"Abdelfatah Ali","phone":"(405)790-0488","email":"abdelfatah@burgessengineer.com","address":"809 NW 34th St, Moore, OK 73160","secondaryContact":"","website":"https://burgessengineer.com/","notes":"Used on Midwest City"},{"id":65,"type":"Environmental","status":"2 Hired","company":"SCS Engineers","markets":"National","primaryContact":"Susan McCart - TX","phone":"(817)571-2288","email":"","address":"1901 Central Dr #550, Bedford TX 76021","secondaryContact":"","website":"https://www.scsengineers.com/","notes":"Used on Midwest City"},{"id":66,"type":"Civil, Surveyor","status":"2 Hired","company":"WSB Engineering","markets":"National","primaryContact":"Andy Armstrong","phone":"(405)701-1350","email":"aarmstrong@wsbeng.com","address":"480 24th Ave NW, Suite 244, Norman, OK 73069","secondaryContact":"","website":"https://www.wsbeng.com/","notes":"Used on Midwest City - formerly EST engineering"},{"id":67,"type":"Landscape Architect","status":"2 Hired","company":"The Dry Land","markets":"El Paso, TX","primaryContact":"Jonathan Matthews","phone":"(915) 887-7893","email":"jonathan@thedryland.com","address":"110 Montecillo, Suite 2A, El Paso, TX 79912","secondaryContact":"","website":"thedryland.com","notes":""},{"id":68,"type":"General Contractor","status":"2 Hired","company":"R&R Construction Group","markets":"TX, OK","primaryContact":"Ted Vitale","phone":"(919) 923-8811","email":"tmvitale@randrcons.com","address":"1011 S Hamilton Road Chapel Hill NC, 27517","secondaryContact":"Mike Woods, mwoods@randrcons.com","website":"https://rnrconstructgroup.com/","notes":""},{"id":69,"type":"General Contractor","status":"2 Hired","company":"Sigma Southwest","markets":"AZ","primaryContact":"Gino Camilleri","phone":"(818) 802-2004","email":"gino@sigmasouthwest.com","address":"22 E Victory Street, Phoenix AZ 85040","secondaryContact":"Bill Santoro, bill@sigmasouthwest.com","website":"www.sigmasouthwest.com","notes":""},{"id":80,"type":"GeoTech","status":"3 Qualified","company":"Geodeca","markets":"Tulsa, OK","primaryContact":"Russell Muzika","phone":"918-949-4064","email":"rmuzika@geodeca.com","address":"","secondaryContact":"Mark Lyons","website":"https://geodeca.com/","notes":""},{"id":81,"type":"Engineering","status":"3 Qualified","company":"Route 66 Engineering","markets":"Tulsa, OK, AR","primaryContact":"John Droz","phone":"918-520-9976","email":"john@66eng.com","address":"5 South Main, Sapulpa, OK 74066","secondaryContact":"","website":"https://66eng.com/","notes":""},{"id":82,"type":"Architect/Engineering","status":"3 Qualified","company":"Davidson Architecture","markets":"33 states","primaryContact":"Hilary Zerr","phone":"913-451-9390","email":"hilary@davidsonae.com","address":"","secondaryContact":"","website":"https://www.davidsonae.com/","notes":""},{"id":83,"type":"Civil Engineering","status":"3 Qualified","company":"Thompson Engineering Consultants, Inc.","markets":"Albuquerque, NM; Santa Fe, NM","primaryContact":"David B. Thompson, P.E.","phone":"Office: (505) 271-2199","email":"tecnm@yahoo.com","address":"","secondaryContact":"","website":"https://www.thompsonengineering.com/","notes":"Referral from Derrick Archuleta"},{"id":84,"type":"Environmental, Soils","status":"3 Qualified","company":"UES","markets":"National","primaryContact":"Mark Hardy (VP, National Accounts Leader)","phone":"813-896-2572","email":"mhardy@teamues.com","address":"9802 Palm River Rd, Tampa, FL 33619","secondaryContact":"Troy Sullivan, tsullivan@teamues.com","website":"https://www.teamues.com/","notes":""},{"id":87,"type":"Surveyor","status":"3 Qualified","company":"Superior Surveying Services","markets":"Phoenix, AZ","primaryContact":"David Klein","phone":"623-869-0223","email":"dave@superiorsurveying.com","address":"2122 W. Lone Cactus Drive, Suite 11, Phoenix, AZ 85027","secondaryContact":"","website":"www.superiorsurveying.com","notes":"Jake referred"},{"id":89,"type":"Architect","status":"4 Prospect","company":"Luddeke Architectural Design Group, Inc.","markets":"Corpus Christi, TX","primaryContact":"B. Mark Luddeke, AIA","phone":"(361) 857-7628","email":"mluddeke@luddekeadg.com","address":"518 S. Entreprize Pkwy, Suite C, Corpus Christi, TX 79405","secondaryContact":"","website":"www.luddekeadg.com","notes":""},{"id":91,"type":"Civil and Surveying","status":"4 Prospect","company":"MHR Engineering, LLC","markets":"Dallas, TX; San Antonio, TX","primaryContact":"Harun Rashid P.E. RPLS CFM","phone":"210-641-0543 O | 210-317-7241 C","email":"hrashid@mhreng.com","address":"16845 Blanco Road, Suite 106, San Antonio, TX 78232","secondaryContact":"","website":"www.mhreng.com","notes":""},{"id":92,"type":"Civil and Surveying","status":"4 Prospect","company":"Vatani","markets":"Houston, TX","primaryContact":"Sarah Vatani","phone":"713-400-0005","email":"Sarah@vatani.com","address":"5700 NW Central Dr Unit 220 Houston, TX 77092","secondaryContact":"","website":"https://vatani.com/","notes":"Has Popeyes on project list"},{"id":93,"type":"Civil and Surveying/Site Development","status":"4 Prospect","company":"BGE","markets":"TX; GA; NC; AR; FL","primaryContact":"Ronnie Harris","phone":"713-412-6546","email":"rharris@bgeinc.com","address":"10777 Westheimer, Suite 400 Houston, Texas 77042","secondaryContact":"","website":"https://www.bgeinc.com/","notes":"Contacted thru LinkedIn"},{"id":94,"type":"Civil Engineer","status":"4 Prospect","company":"MJ Thomas Engineering","markets":"DFW, TX; San Antonio, TX","primaryContact":"Mickey Thomas","phone":"817-996-3446","email":"","address":"","secondaryContact":"","website":"https://mjthomaseng.com","notes":"Specialize in Drive Thru, currently working on Dutch Bros."},{"id":98,"type":"Civil Engineer","status":"4 Prospect","company":"Claymoore Engineering, Inc.","markets":"Prosper TX (Dallas); OK","primaryContact":"Matt Moore, PE (TX, OK)","phone":"Phone -817-281-0572 Cell - 817-201-6982","email":"matt@claymooreeng.com","address":"301 S. Coleman, Suite 40, Prosper, TX 75078","secondaryContact":"","website":"https://claymooreeng.com/","notes":"Recommendation from Michael VanHuss"},{"id":107,"type":"Civil Engineering","status":"4 Prospect","company":"WGA Consulting Engineering","markets":"Houston, San Antonio & Woodlands, TX","primaryContact":"Tyler Munson, P.E.","phone":"713.789.1900","email":"tmunson@wga-llp.com","address":"2500 Tanglewilde, Suite 120 Houston, TX 77063","secondaryContact":"","website":"https://wga-llp.com/","notes":"Recommendation from Mandy Hurst with Dutch Bros."},{"id":148,"type":"General Contractor","status":"4 Prospect","company":"Strong Group","markets":"Dallas, TX","primaryContact":"Mike Anderson","phone":"972-420-7677","email":"mike@strong-group.com","address":"419 South Kealy, Lewisville, TX 75057","secondaryContact":"","website":"http://www.strong-group.com/","notes":"Strong Group has experience in all fields of ground up construction"},{"id":171,"type":"Civil Engineer","status":"4 Prospect","company":"Bohler (NC)","markets":"NC","primaryContact":"Rich Keagy","phone":"O: (980) 272-3400, C: (980) 279-6299","email":"rkeagy@bohlereng.com","address":"1927 S. Tyron St, Suite 310 Charlotte, NC 28203","secondaryContact":"","website":"","notes":""},{"id":172,"type":"Civil Engineer","status":"4 Prospect","company":"Bohler (FL)","markets":"FL","primaryContact":"Gregory Roth","phone":"O: (813) 812-4100, C: (813) 597-4870","email":"groth@bohlereng.com","address":"600 N. Westshore Blvd. Suite 950 Tampa, FL 33609","secondaryContact":"","website":"","notes":""},{"id":175,"type":"Civil Engineer","status":"zNot Qualified","company":"Design Enginuity, LLC","markets":"Santa Fe, NM","primaryContact":"Oralynn Guerrerortiz","phone":"(505) 989-3557","email":"oralynn@designenginuity.biz","address":"1421 Luisa St Suite E, Santa Fe, NM 87505","secondaryContact":"","website":"https://www.designenginuity.net/","notes":"Does not do retail/fast food projects"},{"id":176,"type":"Civil Engineer, Surveyor","status":"zzBlacklisted","company":"Maverick Engineering Survey Water Resources","markets":"TX; UT","primaryContact":"Andrew Mellen","phone":"Office 432.262.0999 | Cell 432.250.1766","email":"AMellen@maverick-eng.com","address":"1909 W. Wall St., Suite K, Midland, TX 79701","secondaryContact":"","website":"www.maverick-eng.com","notes":""},{"id":177,"type":"Civil Engineer","status":"zzBlacklisted","company":"Triangle Engineering","markets":"","primaryContact":"","phone":"","email":"","address":"","secondaryContact":"","website":"","notes":""},{"id":178,"type":"Civil Engineer","status":"zzBlacklisted","company":"Tierra West","markets":"","primaryContact":"","phone":"","email":"","address":"","secondaryContact":"","website":"","notes":""},{"id":179,"type":"Civil Engineer","status":"zzBlacklisted","company":"CESO","markets":"","primaryContact":"","phone":"","email":"","address":"","secondaryContact":"","website":"","notes":""},{"id":180,"type":"Civil Engineer","status":"zzBlacklisted","company":"Halff Associates, Inc.","markets":"","primaryContact":"","phone":"","email":"","address":"","secondaryContact":"","website":"","notes":""},{"id":181,"type":"Soils","status":"zzBlacklisted","company":"Terracon","markets":"","primaryContact":"","phone":"","email":"","address":"","secondaryContact":"","website":"","notes":""},{"id":182,"type":"Civil Engineer","status":"zzBlacklisted","company":"Walker Engineering","markets":"Santa Fe, NM","primaryContact":"","phone":"","email":"","address":"","secondaryContact":"","website":"","notes":""},{"id":222,"type":"Architect","status":"","company":"RKAA Architects, Inc","markets":"Phoenix, AZ","primaryContact":"Neil Feaser","phone":"(602)734-3002","email":"nfeaser@rkaa.com","address":"2233 E Thomas Rd, Phoenix, AZ 85016","secondaryContact":"","website":"https://www.rkaa.com","notes":""},{"id":223,"type":"Civil, Environmental","status":"","company":"Civil & Environmental Consultants, Inc","markets":"MO, TX, PA, MA, WV, NC, IL, OH, MI, SC, IN, TN, OK, AZ","primaryContact":"Dan Koziatek","phone":"(314)656-4566","email":"dkoziatek@cecinc.com","address":"1450 Beale Street, Suite 305, St. Charles, MO 63303","secondaryContact":"","website":"https://www.cecinc.com/","notes":"Carlee met at ICSC"},{"id":224,"type":"Civil","status":"","company":"Cushing Terrell","markets":"MT, CO, OR, ID, TX, LA, WA, MN","primaryContact":"Michael White","phone":"(303)653-6004","email":"michaelwhite@cushingterrell.com","address":"","secondaryContact":"","website":"https://cushingterrell.com/","notes":"Carlee met at ICSC"},{"id":225,"type":"MEP","status":"","company":"Dialectic Engineering","markets":"National","primaryContact":"Robert Harris","phone":"(816)998-9614","email":"robert.harris@dialecticeng.com","address":"310 W 20th St, Suite 100, Kansas City, MO 64108","secondaryContact":"","website":"https://www.dialecticeng.com/","notes":"Carlee met at ICSC"},{"id":226,"type":"Architect, Engineer","status":"","company":"Fusion AE","markets":"National","primaryContact":"Sam Pena","phone":"(972)573-9464","email":"spena@fusion-ae.com","address":"6201 Campus Circle Dr E., Irving, TX 75063","secondaryContact":"","website":"https://fusion-ae.com/","notes":"Carlee met at ICSC"}];
+
+// Load from storage or use seed
+function loadVendors(){
+  try{
+    const stored=localStorage.getItem(STORAGE_KEY);
+    if(stored){
+      const v=JSON.parse(stored);
+      if(v&&Array.isArray(v)&&v.length>0)return v;
+    }
+    // First time: save seed to storage
+    const seed=JSON.parse(JSON.stringify(SEED_VENDORS));
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(seed));}catch(e){}
+    return seed;
+  }catch(e){
+    return JSON.parse(JSON.stringify(SEED_VENDORS));
+  }
+}
+
+function saveVendors(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(vendors));}catch(e){console.warn('Storage unavailable');}
+  updateStats();
+}
+
+let vendors=loadVendors();
+let nextId=Math.max(...vendors.map(v=>v.id))+1;
+let currentFilter={status:'all',type:'all'};
+let currentSort={field:'company',dir:1};
+let editingId=null;
+let selectedId=null;
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function updateStats(){
+  const valid=vendors.filter(v=>v.company&&!['1 Preferred','2 Hired','3 Qualified','4 Prospect','zNot Qualified','zzBlacklisted'].includes(v.company));
+  const counts={
+    all:valid.length,
+    preferred:valid.filter(v=>v.status==='1 Preferred').length,
+    hired:valid.filter(v=>v.status==='2 Hired').length,
+    qualified:valid.filter(v=>v.status==='3 Qualified').length,
+    prospect:valid.filter(v=>v.status==='4 Prospect').length,
+    notqualified:valid.filter(v=>v.status==='zNot Qualified').length,
+    blacklisted:valid.filter(v=>v.status==='zzBlacklisted').length,
+  };
+  Object.entries(counts).forEach(([k,v])=>{
+    const el=document.getElementById('fc-'+k);
+    if(el)el.textContent=v;
+  });
+  document.getElementById('topbarStats').innerHTML=`
+    <div class="stat-pill">Total <span>${counts.all}</span></div>
+    <div class="stat-pill">Preferred <span style="color:var(--green)">${counts.preferred}</span></div>
+    <div class="stat-pill">Hired <span style="color:var(--accent)">${counts.hired}</span></div>
+    <div class="stat-pill">Prospects <span style="color:var(--orange)">${counts.prospect}</span></div>
+  `;
+  buildTypeFilters(valid);
+}
+
+function buildTypeFilters(valid){
+  const typeCounts={};
+  valid.forEach(v=>{
+    const t=normalizeType(v.type)||'Unknown';
+    typeCounts[t]=(typeCounts[t]||0)+1;
+  });
+  const sorted=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('typeFilters').innerHTML=sorted.map(([t,c])=>`
+    <button class="filter-btn ${currentFilter.type===t?'active':''}" onclick="setFilter('type','${t.replace(/'/g,'\\'')}')">
+      ${t} <span class="filter-count">${c}</span>
+    </button>
+  `).join('');
+}
+
+function normalizeType(t){
+  if(!t||t==='nan'||t==='')return'';
+  t=t.replace(/\n/g,' ').trim();
+  const map={'Civil':'Civil Engineer','Civil Engineers':'Civil Engineer','Civil Engineering':'Civil Engineer','Civil Engineers/ Surveyor':'Civil Engineer','Civil Engineers/ Site Development':'Civil Engineer','GC':'General Contractor','GeoTech':'Geotechnical','Enviromental':'Environmental','Enviornmental':'Environmental','Soils, Enviromental':'Soils, Environmental','Land Surveying':'Surveyor','Engineering-Structural':'Structural Engineer'};
+  return map[t]||t;
+}
+
+// ── FILTERS & SORT ────────────────────────────────────────────────────────────
+function setFilter(key,val){
+  currentFilter[key]=val;
+  if(key==='status'){
+    document.querySelectorAll('[id^="f-"]').forEach(b=>{
+      if(b.tagName==='BUTTON'&&b.id.startsWith('f-'))b.classList.remove('active');
+    });
+    const id='f-'+val.replace(/ /g,'').replace('1Preferred','preferred').replace('2Hired','hired').replace('3Qualified','qualified').replace('4Prospect','prospect').replace('zNotQualified','notqualified').replace('zzBlacklisted','blacklisted').replace('all','all');
+    document.getElementById(id)?.classList.add('active');
+  }
+  render();
+}
+
+function clearFilters(){
+  currentFilter={status:'all',type:'all'};
+  document.getElementById('searchInput').value='';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('f-all')?.classList.add('active');
+  render();
+}
+
+function sort(field){
+  if(currentSort.field===field)currentSort.dir*=-1;
+  else{currentSort.field=field;currentSort.dir=1;}
+  render();
+}
+
+function getFiltered(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const skipCompanies=['1 Preferred','2 Hired','3 Qualified','4 Prospect','zNot Qualified','zzBlacklisted','1','2','3','4','5','6'];
+  return vendors.filter(v=>{
+    if(skipCompanies.includes(v.company)||!v.company||v.company==='nan')return false;
+    if(currentFilter.status!=='all'&&v.status!==currentFilter.status)return false;
+    if(currentFilter.type!=='all'&&normalizeType(v.type)!==currentFilter.type)return false;
+    if(q){
+      const haystack=[v.company,v.primaryContact,v.markets,v.email,v.phone,v.type,v.notes,v.secondaryContact].join(' ').toLowerCase();
+      if(!haystack.includes(q))return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    const av=(a[currentSort.field]||'').toLowerCase();
+    const bv=(b[currentSort.field]||'').toLowerCase();
+    return av<bv?-currentSort.dir:av>bv?currentSort.dir:0;
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function statusBadge(s){
+  const map={'1 Preferred':['s-preferred','⭐ Preferred'],'2 Hired':['s-hired','✓ Hired'],'3 Qualified':['s-qualified','◎ Qualified'],'4 Prospect':['s-prospect','◷ Prospect'],'zNot Qualified':['s-notqualified','✗ Not Qualified'],'zzBlacklisted':['s-blacklisted','⛔ Blacklisted']};
+  const[cls,label]=map[s]||['s-unknown',s||'Unknown'];
+  return`<span class="status-badge ${cls}">${label}</span>`;
+}
+
+function render(){
+  const filtered=getFiltered();
+  document.getElementById('resultCount').textContent=`${filtered.length} vendor${filtered.length!==1?'s':''}`;
+  document.getElementById('tbody').innerHTML=filtered.map(v=>`
+    <tr class="${selectedId===v.id?'selected':''}" onclick="showDetail(${v.id})">
+      <td>
+        <div class="company-name">${esc(v.company)}</div>
+        ${v.website?`<a href="${esc(v.website.startsWith('http')?v.website:'https://'+v.website)}" target="_blank" class="email-link" onclick="event.stopPropagation()" style="font-size:11px;">🔗 website</a>`:''}
+      </td>
+      <td><span class="type-badge" title="${esc(v.type)}">${esc(normalizeType(v.type)||v.type||'—')}</span></td>
+      <td>${statusBadge(v.status)}</td>
+      <td><div class="market-text" title="${esc(v.markets)}">${esc(v.markets||'—')}</div></td>
+      <td>
+        <div class="company-name" style="font-size:13px;">${esc(v.primaryContact||'—')}</div>
+        ${v.secondaryContact?`<div class="contact-name" style="font-size:11px;">${esc(v.secondaryContact.substring(0,60))}${v.secondaryContact.length>60?'...':''}</div>`:''}
+      </td>
+      <td>
+        ${v.email?`<a href="mailto:${esc(v.email)}" class="email-link" onclick="event.stopPropagation()">${esc(v.email.substring(0,30))}${v.email.length>30?'...':''}</a>`:'<span style="color:var(--muted)">—</span>'}
+        ${v.phone?`<div class="phone-text">${esc(v.phone.split('\n')[0])}</div>`:''}
+      </td>
+      <td><div class="notes-text" title="${esc(v.notes)}">${esc(v.notes||'')}</div></td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEdit(${v.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteVendor(${v.id})">Del</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
+function showDetail(id){
+  selectedId=id;
+  const v=vendors.find(x=>x.id===id);
+  if(!v){closeDetail();return;}
+  const panel=document.getElementById('detailPanel');
+  panel.classList.add('open');
+  panel.innerHTML=`
+    <div class="detail-header">
+      <div>
+        <div class="detail-company">${esc(v.company)}</div>
+        <div style="margin-top:4px">${statusBadge(v.status)}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Discipline</div>
+      <div style="font-size:13px">${esc(v.type||'Not specified')}</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Primary Contact</div>
+      ${v.primaryContact?`<div class="detail-row"><div class="detail-row-label">Name</div><div class="detail-row-val">${esc(v.primaryContact)}</div></div>`:''}
+      ${v.email?`<div class="detail-row"><div class="detail-row-label">Email</div><div class="detail-row-val"><a href="mailto:${esc(v.email)}" class="email-link">${esc(v.email)}</a></div></div>`:''}
+      ${v.phone?`<div class="detail-row"><div class="detail-row-label">Phone</div><div class="detail-row-val" style="font-family:monospace;font-size:12px;white-space:pre-line">${esc(v.phone)}</div></div>`:''}
+    </div>
+    ${v.secondaryContact?`<div class="detail-section"><div class="detail-label">Secondary Contact</div><div style="font-size:12px;color:var(--muted);line-height:1.5">${esc(v.secondaryContact)}</div></div>`:''}
+    <div class="detail-section">
+      <div class="detail-label">Markets</div>
+      <div style="font-size:13px">${esc(v.markets||'Not specified')}</div>
+    </div>
+    ${v.address?`<div class="detail-section"><div class="detail-label">Address</div><div style="font-size:12px;line-height:1.5;white-space:pre-line">${esc(v.address)}</div></div>`:''}
+    ${v.website?`<div class="detail-section"><div class="detail-label">Website</div><a href="${esc(v.website.startsWith('http')?v.website:'https://'+v.website)}" target="_blank" class="email-link">${esc(v.website)}</a></div>`:''}
+    ${v.notes?`<div class="detail-section"><div class="detail-label">Notes</div><div style="font-size:12px;color:var(--muted);line-height:1.6">${esc(v.notes)}</div></div>`:''}
+    <div class="detail-actions">
+      <button class="btn btn-primary btn-sm" onclick="openEdit(${v.id})">✏️ Edit</button>
+      ${v.email?`<button class="btn btn-secondary btn-sm" onclick="window.open('mailto:${esc(v.email)}')">✉️ Email</button>`:''}
+      <button class="btn btn-danger btn-sm" onclick="deleteVendor(${v.id})">🗑️ Delete</button>
+    </div>
+  `;
+  render();
+}
+
+function closeDetail(){
+  selectedId=null;
+  document.getElementById('detailPanel').classList.remove('open');
+  render();
+}
+
+// ── ADD / EDIT ────────────────────────────────────────────────────────────────
+function openAdd(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Add Vendor';
+  document.getElementById('saveBtn').textContent='Add Vendor';
+  ['company','type','markets','primaryContact','email','phone','address','secondaryContact','website','notes'].forEach(f=>{
+    const el=document.getElementById('f-'+f);
+    if(el)el.value='';
+  });
+  document.getElementById('f-status').value='4 Prospect';
+  document.getElementById('modal').classList.add('open');
+}
+
+function openEdit(id){
+  editingId=id;
+  const v=vendors.find(x=>x.id===id);
+  if(!v)return;
+  document.getElementById('modalTitle').textContent='Edit Vendor';
+  document.getElementById('saveBtn').textContent='Save Changes';
+  document.getElementById('f-company').value=v.company||'';
+  document.getElementById('f-type').value=v.type||'';
+  document.getElementById('f-status').value=v.status||'4 Prospect';
+  document.getElementById('f-markets').value=v.markets||'';
+  document.getElementById('f-primaryContact').value=v.primaryContact||'';
+  document.getElementById('f-email').value=v.email||'';
+  document.getElementById('f-phone').value=v.phone||'';
+  document.getElementById('f-address').value=v.address||'';
+  document.getElementById('f-secondaryContact').value=v.secondaryContact||'';
+  document.getElementById('f-website').value=v.website||'';
+  document.getElementById('f-notes').value=v.notes||'';
+  document.getElementById('modal').classList.add('open');
+}
+
+function saveVendor(){
+  const company=document.getElementById('f-company').value.trim();
+  if(!company){alert('Company name is required.');return;}
+  const data={
+    company,
+    type:document.getElementById('f-type').value,
+    status:document.getElementById('f-status').value,
+    markets:document.getElementById('f-markets').value.trim(),
+    primaryContact:document.getElementById('f-primaryContact').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    phone:document.getElementById('f-phone').value.trim(),
+    address:document.getElementById('f-address').value.trim(),
+    secondaryContact:document.getElementById('f-secondaryContact').value.trim(),
+    website:document.getElementById('f-website').value.trim(),
+    notes:document.getElementById('f-notes').value.trim(),
+  };
+  if(editingId){
+    const idx=vendors.findIndex(v=>v.id===editingId);
+    if(idx>=0)vendors[idx]={...vendors[idx],...data};
+    showToast('✅ Vendor updated');
+  }else{
+    vendors.push({id:nextId++,...data});
+    showToast('✅ Vendor added');
+  }
+  saveVendors();
+  closeModal();
+  render();
+}
+
+function deleteVendor(id){
+  const v=vendors.find(x=>x.id===id);
+  if(!v)return;
+  if(!confirm(`Delete "${v.company}"?`))return;
+  vendors=vendors.filter(x=>x.id!==id);
+  if(selectedId===id)closeDetail();
+  saveVendors();
+  render();
+  showToast('🗑️ Vendor deleted');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportCSV(){
+  const headers=['Company','Type','Status','Markets','Primary Contact','Email','Phone','Address','Secondary Contact','Website','Notes'];
+  const rows=getFiltered().map(v=>[v.company,normalizeType(v.type),v.status,v.markets,v.primaryContact,v.email,v.phone,v.address,v.secondaryContact,v.website,v.notes].map(f=>`"${(f||'').replace(/"/g,'""').replace(/\n/g,' ')}"`));
+  const csv=[headers.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='ADS_Vendors_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('📥 Exported to CSV');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function _unused_esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function _unused_showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Close modal on backdrop click
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+updateStats();
+render();
+
+
+// ══════════════════════════════════════════════════
+// BID REQUEST
+// ══════════════════════════════════════════════════
+function switchBidTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['consultants','emails','research'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+  });
+}
+
+// Load preferred vendors from vendor list into bid consultants
+function loadFromVendors() {
+  const preferred = vendors.filter(v => v.status === '1 Preferred' && v.email);
+  const discs = getSelectedDiscs();
+  let added = 0;
+  preferred.forEach(v => {
+    const typeNorm = normalizeType(v.type).toLowerCase();
+    const matchDisc = discs.find(d => {
+      const dl = d.toLowerCase();
+      return typeNorm.includes(dl.split('/')[0]) || dl.includes(typeNorm.split(' ')[0]);
+    }) || discs[0];
+    if(!consultants.find(c=>c.email===v.email)) {
+      consultants.push({
+        id: nextBidId++,
+        name: v.primaryContact || v.company,
+        firm: v.company,
+        email: v.email,
+        phone: v.phone,
+        disc: matchDisc,
+        selected: true,
+        sent: false
+      });
+      added++;
+    }
+  });
+  showToast(`✅ Imported ${added} preferred vendors`);
+  renderConsultants();
+}
+
+
+const PROXY_URL='https://anthropic-proxy.yarbs7sam.workers.dev';
+const SIG=`\n\nThanks,\nSam Yarbrough | Construction Manager\n2415 E. Camelback Road, Suite 400 | Phoenix, AZ 85016\nOffice: 602.682.6075 | Mobile: 480.427.7747\nsam@accelerateddevelopment.com | www.accelerateddevelopment.com`;
+
+// Default consultant database
+let consultants = [
+  {id:1,name:'Brandon Lee',firm:'Lee Civil Engineering',email:'brandon@leecivil.com',phone:'602-555-0101',disc:'Civil/Site Engineering',selected:true,sent:false},
+  {id:2,name:'Carol Martinez',firm:'Southwest Geotech',email:'carol@swgeotech.com',phone:'480-555-0202',disc:'Geotechnical',selected:true,sent:false},
+  {id:3,name:'Tom Richards',firm:'AZ Environmental Consultants',email:'tom@azenv.com',phone:'623-555-0303',disc:'Environmental',selected:true,sent:false},
+  {id:4,name:'Lisa Chen',firm:'Precision Surveying LLC',email:'lisa@precisionsurvey.com',phone:'602-555-0404',disc:'Surveying',selected:true,sent:false},
+  {id:5,name:'David Park',firm:'Park Architecture Group',email:'david@parkarch.com',phone:'480-555-0505',disc:'Architecture',selected:true,sent:false},
+  {id:6,name:'Mike Torres',firm:'Traffic Solutions Inc',email:'mike@trafficsolutions.com',phone:'602-555-0606',disc:'Traffic/Transportation',selected:true,sent:false},
+  {id:7,name:'Sarah Johnson',firm:'Johnson Civil Partners',email:'sarah@jcpengineering.com',phone:'480-555-0707',disc:'Civil/Site Engineering',selected:false,sent:false},
+  {id:8,name:'Greg Williams',firm:'Williams Geotech',email:'greg@wgeotech.com',phone:'623-555-0808',disc:'Geotechnical',selected:false,sent:false},
+];
+
+let emailDrafts = {};
+let nextId = 9;
+
+const discTagMap = {
+  'Civil/Site Engineering':'civil','Geotechnical':'geotech','Environmental':'env',
+  'Surveying':'survey','Architecture':'arch','Traffic/Transportation':'traffic'
+};
+
+function getSelectedDiscs(){
+  return [...document.querySelectorAll('.disc-chip.active')].map(c=>c.dataset.disc);
+}
+
+function toggleDisc(el){el.classList.toggle('active');renderConsultants();}
+
+function renderConsultants(){
+  const discs=getSelectedDiscs();
+  const filtered=consultants.filter(c=>discs.includes(c.disc));
+  const sel=filtered.filter(c=>c.selected).length;
+  document.getElementById('selectedCount').textContent=`— ${sel} of ${filtered.length} selected`;
+
+  if(!filtered.length){
+    document.getElementById('consultantList').innerHTML='<div class="empty-state"><div class="empty-icon">👥</div>No consultants for selected disciplines.</div>';
+    return;
+  }
+  document.getElementById('consultantList').innerHTML=filtered.map(c=>`
+    <div class="consultant-card ${c.selected?'selected':''} fade-in" id="card-${c.id}">
+      <div class="consultant-check" onclick="toggleConsultant(${c.id})">
+        ${c.selected?'<svg width="10" height="10" viewBox="0 0 12 12" fill="white"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>':''}
+      </div>
+      <div class="consultant-info">
+        <div class="consultant-name">${c.name} ${c.sent?'<span class="sent-badge">✓ Sent</span>':''}</div>
+        <div class="consultant-firm">${c.firm} · ${c.email}</div>
+        <div class="consultant-tags">
+          <span class="tag ${discTagMap[c.disc]||''}">${c.disc}</span>
+          ${c.isNew?'<span class="tag new">⭐ New</span>':''}
+        </div>
+      </div>
+      <div class="consultant-actions">
+        <button class="btn btn-ghost btn-sm" onclick="removeConsultant(${c.id})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleConsultant(id){
+  const c=consultants.find(x=>x.id===id);
+  if(c)c.selected=!c.selected;
+  renderConsultants();
+}
+
+function selectAll(){consultants.forEach(c=>{if(getSelectedDiscs().includes(c.disc))c.selected=true;});renderConsultants();}
+function deselectAll(){consultants.forEach(c=>{if(getSelectedDiscs().includes(c.disc))c.selected=false;});renderConsultants();}
+
+function removeConsultant(id){
+  consultants=consultants.filter(c=>c.id!==id);
+  renderConsultants();
+}
+
+function toggleAddForm(){document.getElementById('addForm').classList.toggle('open');}
+
+function addConsultant(){
+  const name=document.getElementById('newName').value.trim();
+  const firm=document.getElementById('newFirm').value.trim();
+  const email=document.getElementById('newEmail').value.trim();
+  const phone=document.getElementById('newPhone').value.trim();
+  const disc=document.getElementById('newDisc').value;
+  if(!name||!email){alert('Name and email are required.');return;}
+  consultants.push({id:nextId++,name,firm,email,phone,disc,selected:true,sent:false});
+  document.getElementById('newName').value='';
+  document.getElementById('newFirm').value='';
+  document.getElementById('newEmail').value='';
+  document.getElementById('newPhone').value='';
+  toggleAddForm();
+  renderConsultants();
+}
+
+function _unused_switchTab(tab, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['consultants','emails','research'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+  });
+}
+
+// claudeAPI defined above - skipping
+async function _bid_unused_claudeAPI(prompt, tools){
+  const body={model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]};
+  if(tools)body.tools=tools;
+  const r=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(d.error)throw new Error(JSON.stringify(d.error));
+  return d;
+}
+
+async function runResearch(){
+  const location=document.getElementById('projLocation').value.trim();
+  const projName=document.getElementById('projName').value.trim();
+  const discs=getSelectedDiscs();
+  if(!location){alert('Please enter a project location first.');return;}
+
+  switchTab('research', document.querySelectorAll('.tab')[2]);
+  document.getElementById('researchResults').innerHTML='<div class="status-bar"><div class="status-dot loading"></div>Researching consultants near '+location+'...</div>';
+
+  try{
+    const prompt=`I need to find engineering and design consultants for a construction project in ${location}. 
+Project: ${projName||'Commercial Development'}
+Disciplines needed: ${discs.join(', ')}
+
+Please search for reputable consulting firms in the ${location} area for each discipline. For each firm found, provide:
+- Firm name
+- Discipline/specialty  
+- Brief description of their work
+- Any notable projects or clients in the area
+
+Format as a structured list by discipline. Focus on firms that work on commercial/retail development projects.`;
+
+    const d=await claudeAPI(prompt,[{type:'web_search_20250305',name:'web_search'}]);
+    let result='';
+    for(const block of d.content){if(block.type==='text')result+=block.text;}
+
+    document.getElementById('researchResults').innerHTML=`
+      <div class="status-bar"><div class="status-dot"></div>Research complete for ${location}</div>
+      <div class="research-result fade-in">
+        <div class="research-result-name">🔍 AI Research Results</div>
+        <div class="research-result-detail" style="white-space:pre-wrap;line-height:1.7;">${result}</div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-secondary btn-sm" onclick="toggleAddForm();switchTab('consultants',document.querySelectorAll('.tab')[0])">+ Add Found Consultants Manually</button>
+      </div>`;
+  }catch(err){
+    document.getElementById('researchResults').innerHTML=`<div class="empty-state" style="color:var(--red);">Error: ${err.message}</div>`;
+  }
+}
+
+async function generateAllEmails(){
+  const selected=consultants.filter(c=>c.selected&&getSelectedDiscs().includes(c.disc));
+  if(!selected.length){alert('Please select at least one consultant.');return;}
+
+  const projName=document.getElementById('projName').value.trim()||'our new project';
+  const projLocation=document.getElementById('projLocation').value.trim()||'the project location';
+  const projType=document.getElementById('projType').value;
+  const projScope=document.getElementById('projScope').value.trim()||'commercial development';
+  const projDue=document.getElementById('projDue').value;
+  const dueStr=projDue?new Date(projDue).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'to be determined';
+
+  switchTab('emails',document.querySelectorAll('.tab')[1]);
+  document.getElementById('emailPreviews').innerHTML='<div class="status-bar"><div class="status-dot loading"></div>Generating RFP emails for '+selected.length+' consultant(s)...</div>';
+
+  emailDrafts={};
+  const previews=[];
+
+  for(const c of selected){
+    try{
+      const prompt=`You are Sam Yarbrough, Construction Manager at Accelerated Development Services. Write a professional but concise RFP (Request for Proposal) email to ${c.name} at ${c.firm} for ${c.disc} services.
+
+Project details:
+- Project: ${projName}
+- Location: ${projLocation}
+- Type: ${projType}
+- Scope: ${projScope}
+- Proposal due: ${dueStr}
+
+RULES:
+- Professional but direct — Sam's style, not overly formal
+- 3-4 short paragraphs max
+- Mention the specific discipline (${c.disc}) and what you need from them
+- Ask them to confirm interest and submit proposal by the due date
+- No bullet points in the email body
+- Plain text only
+- Do NOT include subject line or "To:" in the body
+- End with EXACTLY this signature:${SIG}`;
+
+      const d=await claudeAPI(prompt);
+      const text=d.content?.[0]?.text||'';
+      emailDrafts[c.id]=text;
+
+      previews.push(`
+        <div class="email-preview fade-in">
+          <div class="email-preview-header">
+            <div>
+              <div class="email-preview-to"><strong>${c.name}</strong> — ${c.firm}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">📧 ${c.email} · ${c.disc}</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${c.sent?'<span class="sent-badge">✓ Sent</span>':''}
+              <button class="btn btn-ghost btn-sm" onclick="editDraft(${c.id})">Edit</button>
+              <button class="btn btn-primary btn-sm" onclick="sendSingle(${c.id})">Send</button>
+            </div>
+          </div>
+          <div class="email-preview-body" id="draft-${c.id}">${emailDrafts[c.id]}</div>
+        </div>`);
+
+      document.getElementById('emailPreviews').innerHTML=previews.join('')+'<div class="status-bar"><div class="status-dot loading"></div>Generating remaining emails...</div>';
+    }catch(err){
+      previews.push(`<div class="email-preview"><div class="email-preview-header"><div class="email-preview-to"><strong>${c.name}</strong></div></div><div class="email-preview-body" style="color:var(--red);">Error generating email: ${err.message}</div></div>`);
+    }
+  }
+
+  document.getElementById('emailPreviews').innerHTML=previews.join('');
+}
+
+function editDraft(id){
+  const el=document.getElementById('draft-'+id);
+  if(!el)return;
+  const current=el.textContent;
+  el.innerHTML=`<textarea style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:13px;line-height:1.7;padding:8px;min-height:200px;" id="edit-${id}">${current}</textarea><div style="display:flex;gap:6px;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="saveDraft(${id})">Save</button><button class="btn btn-ghost btn-sm" onclick="cancelEdit(${id},'${encodeURIComponent(current)}')">Cancel</button></div>`;
+}
+
+function saveDraft(id){
+  const val=document.getElementById('edit-'+id)?.value||'';
+  emailDrafts[id]=val;
+  document.getElementById('draft-'+id).textContent=val;
+}
+
+function cancelEdit(id,original){
+  document.getElementById('draft-'+id).textContent=decodeURIComponent(original);
+}
+
+async function sendSingle(id){
+  const c=consultants.find(x=>x.id===id);
+  const draft=emailDrafts[id];
+  if(!c||!draft){alert('No draft found.');return;}
+
+  const token=localStorage.getItem('ms_access_token');
+  if(!token){alert('Please sign in to your email first via the main app.');return;}
+
+  const projName=document.getElementById('projName').value.trim()||'New Project';
+  const subject=`Request for Proposal — ${c.disc} Services — ${projName}`;
+
+  try{
+    const r=await fetch('https://graph.microsoft.com/v1.0/me/sendMail',{
+      method:'POST',
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({message:{subject,body:{contentType:'Text',content:draft},toRecipients:[{emailAddress:{address:c.email,name:c.name}}]}})
+    });
+    if(r.status===202){
+      c.sent=true;
+      alert(`✅ Sent to ${c.name}!`);
+      renderConsultants();
+      generateAllEmails();
+    }else{
+      const err=await r.json();
+      alert('Failed: '+(err.error?.message||'Unknown error'));
+    }
+  }catch(err){alert('Error: '+err.message);}
+}
+
+async function sendAllEmails(){
+  const selected=consultants.filter(c=>c.selected&&getSelectedDiscs().includes(c.disc)&&!c.sent);
+  if(!selected.length){alert('No unsent emails. Generate RFP emails first, or all selected consultants have already been sent to.');return;}
+
+  if(!Object.keys(emailDrafts).length){
+    alert('Please generate RFP emails first.');
+    switchTab('emails',document.querySelectorAll('.tab')[1]);
+    return;
+  }
+
+  const confirm_=window.confirm(`Send RFP emails to ${selected.length} consultant(s)?`);
+  if(!confirm_)return;
+
+  for(const c of selected){
+    if(emailDrafts[c.id])await sendSingle(c.id);
+  }
+}
+
+// Set default due date to 2 weeks from now
+const _d=new Date();_d.setDate(_d.getDate()+14);
+document.getElementById('projDue').value=_d.toISOString().split('T')[0];
+
+renderConsultants();
+
+
+// Fix nextId collision
+let nextBidId = 1000;
+
+// ── INIT ──
+updateStats();
+render();
+renderConsultants();
+</script>
+</body>
+</html>
