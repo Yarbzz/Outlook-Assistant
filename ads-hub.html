@@ -745,7 +745,16 @@ function filterByLocation() {
   bidConsultants.forEach(c => {
     c.selected = vendorMatchesLocation({markets: c.markets}, location);
   });
+  // Make sure we're on the consultants tab so the list re-renders
+  currentBidTab = 'consultants';
+  document.querySelectorAll('.bid-tab').forEach(t => t.classList.remove('active'));
+  const consultantTab = document.getElementById('btab-consultants');
+  if (consultantTab) consultantTab.classList.add('active');
   renderConsultantList();
+  // Show toast with count
+  const sel = bidConsultants.filter(c => c.selected).length;
+  const total = bidConsultants.length;
+  toast(location ? `📍 ${sel} of ${total} consultants match ${location}` : `Showing all ${total} consultants`);
 }
 
 function renderConsultantList() {
