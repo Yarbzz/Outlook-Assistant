@@ -197,7 +197,7 @@
 const CLIENT_ID = '4f08beb7-ce0f-4296-9497-25581c642bda';
 const TENANT_ID = '28239880-baec-474b-b395-8bd483ad9857';
 const CLIENT_SECRET = 'UBl8Q~ILe11GJeJ-AWb5qcXp8YuPBCRu12xxjbW8';
-const REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
+const REDIRECT_URI = 'https://yarbzz.github.io/Outlook-Assistant/';
 const SCOPES = 'openid profile email Mail.Read Mail.Send User.Read offline_access';
 
 let accessToken = null;
@@ -209,11 +209,12 @@ let emails = [];
 function signIn() {
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
-    response_type: 'code',
+    response_type: 'token',
     redirect_uri: REDIRECT_URI,
     scope: SCOPES,
-    response_mode: 'query',
-    prompt: 'select_account'
+    response_mode: 'fragment',
+    prompt: 'select_account',
+    nonce: Math.random().toString(36).substring(2)
   });
   window.location.href = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?${params}`;
 }
@@ -221,6 +222,7 @@ function signIn() {
 function signOut() {
   localStorage.removeItem('ms_access_token');
   localStorage.removeItem('ms_refresh_token');
+  window.location.hash = '';
   accessToken = null;
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('appScreen').style.display = 'none';
@@ -260,37 +262,33 @@ async function refreshAccessToken(refreshToken) {
 }
 
 async function init() {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-
-  if (code) {
+  // Check URL hash for implicit flow token (access_token=...)
+  if (window.location.hash) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const token = hashParams.get('access_token');
+    const error = hashParams.get('error_description');
     window.history.replaceState({}, '', window.location.pathname);
-    const tokens = await exchangeCode(code);
-    if (tokens.access_token) {
-      accessToken = tokens.access_token;
-      localStorage.setItem('ms_access_token', tokens.access_token);
-      if (tokens.refresh_token) localStorage.setItem('ms_refresh_token', tokens.refresh_token);
+    if (token) {
+      accessToken = token;
+      localStorage.setItem('ms_access_token', token);
       showApp();
-    } else {
-      alert('Auth failed: ' + (tokens.error_description || JSON.stringify(tokens)));
+      return;
+    } else if (error) {
+      alert('Sign in failed: ' + error);
+      return;
     }
-    return;
   }
 
+  // Check stored token
   const stored = localStorage.getItem('ms_access_token');
-  const refresh = localStorage.getItem('ms_refresh_token');
-
   if (stored) {
     accessToken = stored;
     showApp();
-  } else if (refresh) {
-    const tokens = await refreshAccessToken(refresh);
-    if (tokens.access_token) {
-      accessToken = tokens.access_token;
-      localStorage.setItem('ms_access_token', tokens.access_token);
-      showApp();
-    }
+    return;
   }
+
+  // Nothing — show sign in screen
+  document.getElementById('authScreen').style.display = 'flex';
 }
 
 async function showApp() {
